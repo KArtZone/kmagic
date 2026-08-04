@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.2.21"
+    id("io.kotest").version("6.2.3")
 }
 
 group = "pro.artkart"
@@ -10,8 +11,9 @@ repositories {
 }
 
 dependencies {
+    testImplementation(libs.kotest.core)
+    testImplementation(libs.kotest.assertions)
     testImplementation(kotlin("test"))
-    testImplementation("io.kotest:kotest-assertions-core:${version}")
 }
 
 kotlin {
