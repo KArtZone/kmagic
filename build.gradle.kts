@@ -1,6 +1,6 @@
 plugins {
     kotlin("jvm") version "2.2.21"
-    id("io.kotest").version("6.2.3")
+    id("io.kotest") version "6.2.3"
 }
 
 group = "pro.artkart"
