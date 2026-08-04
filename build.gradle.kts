@@ -13,7 +13,6 @@ repositories {
 dependencies {
     testImplementation(libs.kotest.core)
     testImplementation(libs.kotest.assertions)
-    testImplementation(kotlin("test"))
 }
 
 kotlin {
