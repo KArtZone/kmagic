@@ -8,16 +8,6 @@ fun carriedSum(a: Int): (Int) -> Int = { b ->
     a + b
 }
 
-val repeatString: (String) -> (Int) -> String = { str -> { n -> str.repeat(n) } }
-
-fun repeatStringPartlySecond(n: Int, f: (String) -> (Int) -> String): (String) -> String = { str ->
-    f(str)(n)
-}
-
-val repeatStringPartlySecond: (Int, (String) -> (Int) -> String) -> (String) -> String = { n, f ->
-    { s -> f(s)(n) }
-}
-
 val carriedSumValue: (Int) -> (Int) -> Int = { a -> { b -> a + b } }
 
 fun <T> compose(f1: (T) -> T, f2: (T) -> T): (T) -> T = { x -> f2(f1(x)) }
@@ -42,12 +32,48 @@ class Typed<T, U, R> {
     }
 }
 
-fun <T> varargCompose(vararg f: (T) -> T): (T) -> T = { x ->
+fun <T> varargCompose(vararg f: (T) -> T): (T) -> T = {
     f.reduce { acc, function ->
         { x -> function(acc(x)) }
-    }(x)
+    }(it)
+}
+
+fun <T> varargComposeUgly(vararg f: (T) -> T): (T) -> T = { x ->
+    var result: T = x
+    f.forEach { result = it(result) }
+    result
 }
 
 fun <T, U, R> polyCompose(f1: (T) -> U, f2: (U) -> R): (T) -> R = { x ->
     f2(f1(x))
+}
+
+fun <A, B, C, D> f(a: A, b: B, c: C, d: D): String = "$a $b $c $d"
+
+fun <A, B, C, D> carriedF() = { a: A ->
+    { b: B ->
+        { c: C ->
+            { d: D -> "$a $b $c $d" }
+        }
+    }
+}
+
+class F<A, B, C, D> {
+    val carriedFValue: (A) -> (B) -> (C) -> (D) -> String = { a ->
+        { b ->
+            { c ->
+                { d -> "$a $b $c $d" }
+            }
+        }
+    }
+}
+
+fun <A, B, C> carriedG(g: (A, B) -> C): (A) -> (B) -> C = { a ->
+    { b -> g(a, b) }
+}
+
+fun <T, U, R> converted(f: (T) -> (U) -> R): (U) -> (T) -> R = { u ->
+    { t ->
+        f(t)(u)
+    }
 }
