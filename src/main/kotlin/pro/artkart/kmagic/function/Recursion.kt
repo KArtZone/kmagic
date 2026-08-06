@@ -1,6 +1,7 @@
 package pro.artkart.kmagic.function
 
 import java.math.BigDecimal
+import java.math.BigDecimal.ONE
 
 tailrec fun add(a: Int, b: Int): Int {
     fun inc(n: Int) = n + 1
@@ -40,7 +41,7 @@ fun fibonacci(n: Int): BigDecimal {
         else
             fibonacci(current + previous, current, index - 1)
     }
-    return fibonacci(BigDecimal.ONE, BigDecimal.ONE, n)
+    return fibonacci(ONE, ONE, n)
 }
 
 fun <T> makeString(list: List<T>, delimiter: String): String =
@@ -134,3 +135,57 @@ fun <T> unfoldV2(seed: T, f: (T) -> T, p: (T) -> Boolean): List<T> {
 }
 
 fun rangeV4(start: Int, end: Int): List<Int> = unfoldV2(start, { it + 1 }) { it < end }
+
+fun fibonacciList(n: Int): List<BigDecimal> {
+    tailrec fun fib(acc: List<BigDecimal>, index: Int, current: BigDecimal, previous: BigDecimal): List<BigDecimal> {
+        val value = current + previous
+        return when (index) {
+            0 -> acc
+            1 -> acc + (value)
+            else -> {
+                fib(acc + (value), index - 1, value, current)
+            }
+        }
+    }
+    return fib(listOf(ONE, ONE), n - 2, ONE, ONE)
+}
+
+fun <T> iterate(seed: T, n: Int, f: (T) -> T): List<T> {
+    tailrec fun iterate(acc: List<T>, current: T): List<T> =
+        if (acc.size == n)
+            acc
+        else
+            iterate(acc + current, f(current))
+
+    return iterate(listOf(), seed)
+}
+
+fun <T, R> map(list: List<T>, transform: (T) -> R): List<R> {
+    tailrec fun map(acc: List<R>, list: List<T>): List<R> =
+        if (list.isEmpty())
+            acc
+        else
+            map(acc + transform(list.first()), list.drop(1))
+    return map(listOf(), list)
+}
+
+fun <T, R> mapV2(list: List<T>, transform: (T) -> R): List<R> = foldLeft(
+    list, listOf()
+) { acc, item -> acc + transform(item) }
+
+fun fibonacciString(n: Int): String {
+    fun fib(sb: StringBuilder, value: Pair<BigDecimal, BigDecimal>, index: Int): StringBuilder =
+        if (index == 0)
+            sb
+        else
+            fib(sb.append("${value.first + value.second}, "), Pair(value.second, value.first + value.second), index - 1)
+    return fib(StringBuilder("1, 1, "), Pair(ONE, ONE), n - 2).toString().dropLast(2)
+}
+
+fun fibonacciStringV2(n: Int) =
+    makeString(
+        map(
+            iterate(Pair(ONE, ONE), n) { Pair(it.second, it.first + it.second) }
+        ) { it.first },
+        ", "
+    )

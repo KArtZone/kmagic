@@ -11,6 +11,8 @@ repositories {
 }
 
 dependencies {
+    implementation(libs.coroutines.core)
+
     testImplementation(libs.kotest.core)
     testImplementation(libs.kotest.assertions)
 }

@@ -69,4 +69,28 @@ class RecursionTest : StringSpec({
     "rangeV4(1, 4) should return listOf(1, 2, 3)" {
         rangeV4(1, 4) shouldBe listOf(1, 2, 3)
     }
+
+    "fibonacciList(7) should return listOf(1, 1, 2, 3, 5, 8, 13).map { BigDecimal(it)" {
+        fibonacciList(7).joinToString() shouldBe "1, 1, 2, 3, 5, 8, 13"
+    }
+
+    "iterate(0, 4) { it + 1 } should return listOf(0, 1, 2, 3)" {
+        iterate(0, 4) { it + 1 } shouldBe listOf(0, 1, 2, 3)
+    }
+
+    "map(listOf('a', 'b', 'c') { it.uppercaseChar() } should return listOf('A', 'B', 'C'))" {
+        map(listOf('a', 'b', 'c')) { it.uppercaseChar() } shouldBe listOf('A', 'B', 'C')
+    }
+
+    "mapV2(listOf('a', 'b', 'c') { it.uppercaseChar() } should return listOf('A', 'B', 'C'))" {
+        mapV2(listOf('a', 'b', 'c')) { it.uppercaseChar() } shouldBe listOf('A', 'B', 'C')
+    }
+
+    "fibonacciString(7) should return listOf(1, 1, 2, 3, 5, 8, 13).map { BigDecimal(it)" {
+        fibonacciString(7) shouldBe "1, 1, 2, 3, 5, 8, 13"
+    }
+
+    "fibonacciStringV2(7) should return listOf(1, 1, 2, 3, 5, 8, 13).map { BigDecimal(it)" {
+        fibonacciStringV2(7) shouldBe "1, 1, 2, 3, 5, 8, 13"
+    }
 })
