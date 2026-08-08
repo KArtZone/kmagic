@@ -14,8 +14,8 @@ sealed class ImmutableList<T> {
     }
 
     internal class Cons<T>(
-        internal val head: T,
-        internal val tail: ImmutableList<T>
+        val head: T,
+        val tail: ImmutableList<T>
     ) : ImmutableList<T>() {
 
         override fun isEmpty(): Boolean = false
