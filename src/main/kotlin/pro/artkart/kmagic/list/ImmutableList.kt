@@ -11,9 +11,13 @@ sealed class ImmutableList<T> {
         override fun size(): Int = 0
 
         override fun toString(): String = "[Nil]"
+
+        override fun equals(other: Any?): Boolean = other === Nil
+
+        override fun hashCode(): Int = 0
     }
 
-    internal class Cons<T>(
+    internal data class Cons<T>(
         val head: T,
         val tail: ImmutableList<T>
     ) : ImmutableList<T>() {
