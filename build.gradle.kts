@@ -11,6 +11,8 @@ repositories {
 }
 
 dependencies {
+    implementation(kotlin("reflect"))
+    implementation(kotlin("stdlib"))
     implementation(libs.coroutines.core)
 
     testImplementation(libs.kotest.core)
