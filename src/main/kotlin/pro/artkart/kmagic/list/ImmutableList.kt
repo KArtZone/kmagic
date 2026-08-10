@@ -161,6 +161,10 @@ fun ImmutableList<Int>.sum(): Int {
     return sum(0, this)
 }
 
+fun ImmutableList<Double>.sum(): Double = foldLeft(0.0) { acc ->
+    { item -> acc + item }
+}
+
 fun <T> concatFoldRight(left: ImmutableList<T>, right: ImmutableList<T>): ImmutableList<T> =
     left.foldRight(right) { item ->
         { acc ->

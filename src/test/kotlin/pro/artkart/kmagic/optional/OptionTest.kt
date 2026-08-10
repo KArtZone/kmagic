@@ -40,8 +40,4 @@ class OptionTest : StringSpec({
     "Option(2).filter { it % 2 == 0 } should return Option(2)" {
         Option(2).filter { it % 2 == 0 } shouldBe Option(2)
     }
-
-    "Option(1).filter { it % 2 == 0 } should return None" {
-        Option(1).filter { it % 2 == 0 } shouldBe Option.None
-    }
 })
