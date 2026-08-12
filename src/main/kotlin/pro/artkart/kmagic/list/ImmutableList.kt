@@ -1,5 +1,6 @@
 package pro.artkart.kmagic.list
 
+import pro.artkart.kmagic.exception.Either
 import java.math.BigDecimal
 
 sealed class ImmutableList<T> {
@@ -146,6 +147,13 @@ sealed class ImmutableList<T> {
                 Nil -> acc
                 is Cons -> coFoldRight(list.tail, transform(list.head)(acc), transform)
             }
+
+        fun <T : Comparable<T>> max(list: ImmutableList<T>): Either<String, T> = when (list) {
+            Nil -> Either.left("Max called in an empty list")
+            is Cons -> Either.right(list.foldLeft(list.head) { acc ->
+                { item -> if (acc >= item) acc else item }
+            })
+        }
 
         @Suppress("UNCHECKED_CAST")
         operator fun <T> invoke(vararg items: T): ImmutableList<T> =

@@ -2,6 +2,8 @@ package pro.artkart.kmagic.list
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import pro.artkart.kmagic.exception.Either
+import pro.artkart.kmagic.list.ImmutableList.Companion.max
 import java.math.BigDecimal
 
 class ImmutableListTest : StringSpec({
@@ -138,5 +140,13 @@ class ImmutableListTest : StringSpec({
         ImmutableList(1, 2, 3, 4, 5, 6)
             .filterV2 { it % 2 != 0 }
             .toString() shouldBe "[1, 3, 5, Nil]"
+    }
+
+    "max(ImmutableList(1, 2, 42, 3)) should return Either.right(42)" {
+        max(ImmutableList(1, 2, 42, 3)) shouldBe Either.right(42)
+    }
+
+    "max(ImmutableList<Int>()) shouldBe Either.left(Max called in an empty list)" {
+        max(ImmutableList<Int>()) shouldBe Either.left("Max called in an empty list")
     }
 })
