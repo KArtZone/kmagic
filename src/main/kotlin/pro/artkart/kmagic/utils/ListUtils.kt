@@ -1,5 +1,6 @@
 package pro.artkart.kmagic.utils
 
+import pro.artkart.kmagic.exception.Resolution
 import pro.artkart.kmagic.list.ImmutableList
 import pro.artkart.kmagic.list.sum
 import pro.artkart.kmagic.optional.Option
@@ -7,7 +8,7 @@ import kotlin.math.pow
 
 fun mean(list: ImmutableList<Double>): Option<Double> = when {
     list.isEmpty() -> Option()
-    else -> Option(list.sum() / list.size())
+    else -> Option(list.sum() / list.size)
 }
 
 val variance: (ImmutableList<Double>) -> Option<Double> = { list ->
@@ -59,3 +60,23 @@ fun <T, R> traverse(list: ImmutableList<T>, transform: (T) -> Option<R>): Option
     }
 
 fun <T> sequenceV2(list: ImmutableList<Option<T>>): Option<ImmutableList<T>> = traverse(list) { it }
+
+fun <T> flattenResult(list: ImmutableList<Resolution<T>>): ImmutableList<T> =
+    list.flatMap { resolution ->
+        resolution.map { ImmutableList(it) }
+            .getOrElse { ImmutableList() }
+    }
+
+fun <T> flattenResultV3(list: ImmutableList<Resolution<T>>): ImmutableList<T> =
+    list.filter { it is Resolution.Success }
+        .map { (it as Resolution.Success).value }
+
+fun <T> flattenResultV2(list: ImmutableList<Resolution<T>>): ImmutableList<T> =
+    list.coFoldRight(ImmutableList()) { item ->
+        { acc ->
+            when (item) {
+                is Resolution.Success -> acc.cons(item.value)
+                else -> acc
+            }
+        }
+    }

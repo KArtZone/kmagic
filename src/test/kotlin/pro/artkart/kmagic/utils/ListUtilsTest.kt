@@ -2,10 +2,11 @@ package pro.artkart.kmagic.utils
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import pro.artkart.kmagic.exception.Resolution
 import pro.artkart.kmagic.list.ImmutableList
 import pro.artkart.kmagic.optional.Option
 
-class ListOptionUtilsTest : StringSpec({
+class ListUtilsTest : StringSpec({
 
     "Option(1).filter { it % 2 == 0 } should return None" {
         Option(1).filter { it % 2 == 0 } shouldBe Option.None
@@ -67,5 +68,35 @@ class ListOptionUtilsTest : StringSpec({
                 Option(3)
             )
         ) shouldBe Option(ImmutableList(1, 2, 3))
+    }
+
+    "flattenResult should return ImmutableList(1, 7)" {
+        flattenResult(
+            ImmutableList(
+                Resolution(1),
+                Resolution(),
+                Resolution(7),
+            )
+        ) shouldBe ImmutableList(1, 7)
+    }
+
+    "flattenResultV2 should return ImmutableList(1, 7)" {
+        flattenResultV2(
+            ImmutableList(
+                Resolution(1),
+                Resolution(),
+                Resolution(7),
+            )
+        ) shouldBe ImmutableList(1, 7)
+    }
+
+    "flattenResultV3 should return ImmutableList(1, 7)" {
+        flattenResultV3(
+            ImmutableList(
+                Resolution(1),
+                Resolution(),
+                Resolution(7),
+            )
+        ) shouldBe ImmutableList(1, 7)
     }
 })

@@ -4,6 +4,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 class Memoizer<T, R> private constructor() {
 
+    @Suppress("JavaCollectionWithNullableTypeArgument")
     private val cache = ConcurrentHashMap<T, R>()
 
     fun doMemoize(f: (T) -> R): (T) -> R = { key ->

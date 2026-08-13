@@ -1,15 +1,18 @@
 package pro.artkart.kmagic.list
 
 import pro.artkart.kmagic.exception.Either
+import pro.artkart.kmagic.exception.Resolution
 import java.math.BigDecimal
 
 sealed class ImmutableList<T> {
 
     internal object Nil : ImmutableList<Nothing>() {
 
+        override val size: Int = 0
+
         override fun isEmpty(): Boolean = true
 
-        override fun size(): Int = 0
+        override fun headSafe(): Resolution<Nothing> = Resolution.Empty
 
         override fun toString(): String = "[Nil]"
 
@@ -23,11 +26,13 @@ sealed class ImmutableList<T> {
         val tail: ImmutableList<T>
     ) : ImmutableList<T>() {
 
+        override val size: Int = 1 + tail.size
+
         override fun isEmpty(): Boolean = false
 
-        override fun toString(): String = "[${toString("", this)}Nil]"
+        override fun headSafe(): Resolution<T> = Resolution(head)
 
-        override fun size(): Int = this.foldLeft(0) { acc -> { acc + 1 } }
+        override fun toString(): String = "[${toString("", this)}Nil]"
 
         private tailrec fun toString(acc: String, list: ImmutableList<T>): String =
             when (list) {
@@ -36,9 +41,34 @@ sealed class ImmutableList<T> {
             }
     }
 
+    abstract val size: Int
+
     abstract fun isEmpty(): Boolean
 
-    abstract fun size(): Int
+    abstract fun headSafe(): Resolution<T>
+
+    fun lastSafe(): Resolution<T> = foldLeft(Resolution()) { { Resolution(it) } }
+
+    fun headSafeV2(): Resolution<T> = when (this) {
+        Nil -> Resolution.Empty
+        is Cons -> Resolution(head)
+    }
+
+    fun headSafeV3(): Resolution<T> =
+        coFoldRight(Resolution()) { { _ -> Resolution(it) } }
+
+    fun lastSafeV2(): Resolution<T> = when (this) {
+        Nil -> Resolution.Empty
+        else -> drop(size - 1).headSafe()
+    }
+
+    fun lastSafeV3(): Resolution<T> = when (this) {
+        Nil -> Resolution.Empty
+        is Cons -> when (tail) {
+            Nil -> Resolution(head)
+            is Cons -> tail.lastSafeV3()
+        }
+    }
 
     fun cons(item: T): ImmutableList<T> = Cons(item, this)
 

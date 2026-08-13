@@ -4,7 +4,7 @@ import java.io.Serializable
 
 sealed class Resolution<out T> : Serializable {
 
-    internal class Failure<out T>(
+    internal data class Failure<out T>(
         internal val exception: RuntimeException
     ) : Resolution<T>() {
         override fun toString(): String = "Failure(${exception.message})"
@@ -18,6 +18,7 @@ sealed class Resolution<out T> : Serializable {
         ) = onFailure(exception)
     }
 
+    @Suppress("JavaIoSerializableObjectMustHaveReadResolve")
     internal object Empty : Resolution<Nothing>() {
         override fun toString(): String = "Empty"
         override fun <R> map(transform: (Nothing) -> R): Resolution<R> = Empty
@@ -30,7 +31,7 @@ sealed class Resolution<out T> : Serializable {
         ) = onEmpty()
     }
 
-    internal class Success<out T>(
+    internal data class Success<out T>(
         internal val value: T
     ) : Resolution<T>() {
 
@@ -95,9 +96,9 @@ sealed class Resolution<out T> : Serializable {
     }
 
     fun filter(p: (T) -> Boolean): Resolution<T> =
-        flatMap { if (p(it)) this else failure("Condition not matched") }
+        flatMap { if (p(it)) this else Empty }
 
-    fun filter(p: (T) -> Boolean, error: String): Resolution<T> = flatMap { if (p(it)) this else failure(error) }
+    fun filter(error: String, p: (T) -> Boolean): Resolution<T> = flatMap { if (p(it)) this else failure(error) }
 
     fun exists(p: (T) -> Boolean): Boolean = map(p).getOrElse(false)
 
@@ -136,9 +137,6 @@ sealed class Resolution<out T> : Serializable {
 
         fun <T> failure(exception: RuntimeException): Resolution<T> =
             Failure(exception)
-
-        fun <T> failure(exception: Exception): Resolution<T> =
-            Failure(IllegalStateException(exception))
     }
 }
 

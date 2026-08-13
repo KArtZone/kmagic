@@ -3,6 +3,7 @@ package pro.artkart.kmagic.list
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import pro.artkart.kmagic.exception.Either
+import pro.artkart.kmagic.exception.Resolution
 import pro.artkart.kmagic.list.ImmutableList.Companion.max
 import java.math.BigDecimal
 
@@ -97,7 +98,7 @@ class ImmutableListTest : StringSpec({
     }
 
     "ImmutableList(1, 2, 3).size() should return 3" {
-        ImmutableList(1, 2, 3).size() shouldBe 3
+        ImmutableList(1, 2, 3).size shouldBe 3
     }
 
     "ImmutableList(1, 2, 3).reverseV2().toString() should return [3, 2, 1, Nil]" {
@@ -146,7 +147,31 @@ class ImmutableListTest : StringSpec({
         max(ImmutableList(1, 2, 42, 3)) shouldBe Either.right(42)
     }
 
-    "max(ImmutableList<Int>()) shouldBe Either.left(Max called in an empty list)" {
+    "max(ImmutableList<Int>()) should return Either.left(Max called in an empty list)" {
         max(ImmutableList<Int>()) shouldBe Either.left("Max called in an empty list")
+    }
+
+    "ImmutableList(1, 2, 3).lastSafe() should return 3" {
+        ImmutableList(1, 2, 3).lastSafe() shouldBe Resolution(3)
+    }
+
+    "ImmutableList(1, 2, 3).lastSafeV2() should return 3" {
+        ImmutableList(1, 2, 3).lastSafeV2() shouldBe Resolution(3)
+    }
+
+    "ImmutableList(1, 2, 3).lastSafeV3() should return 3" {
+        ImmutableList(1, 2, 3).lastSafeV3() shouldBe Resolution(3)
+    }
+
+    "ImmutableList(1, 2, 3).headSafe() should return Resolution(1)" {
+        ImmutableList(1, 2, 3).headSafe() shouldBe Resolution(1)
+    }
+
+    "ImmutableList(1, 2, 3).headSafeV2() should return Resolution(1)" {
+        ImmutableList(1, 2, 3).headSafeV2() shouldBe Resolution(1)
+    }
+
+    "ImmutableList(1, 2, 3).headSafeV3() should return Resolution(1)" {
+        ImmutableList(1, 2, 3).headSafeV3() shouldBe Resolution(1)
     }
 })
