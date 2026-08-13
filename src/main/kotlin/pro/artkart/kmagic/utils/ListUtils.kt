@@ -80,3 +80,24 @@ fun <T> flattenResultV2(list: ImmutableList<Resolution<T>>): ImmutableList<T> =
             }
         }
     }
+
+fun <T> sequence(list: ImmutableList<Resolution<T>>): Resolution<ImmutableList<T>> =
+    list.coFoldRight(Resolution(ImmutableList())) { item ->
+        { acc ->
+            acc.flatMap { list ->
+                item.map { list.cons(it) }
+            }
+        }
+    }
+
+fun <T, R> traverseResolution(list: ImmutableList<T>, transform: (T) -> Resolution<R>): Resolution<ImmutableList<R>> =
+    list.coFoldRight(Resolution(ImmutableList())) { item ->
+        { acc ->
+            acc.flatMap { list ->
+                transform(item).map { list.cons(it) }
+            }
+        }
+    }
+
+fun <T> sequenceV2(list: ImmutableList<Resolution<T>>): Resolution<ImmutableList<T>> =
+    traverseResolution(list) { it }

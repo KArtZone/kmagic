@@ -99,4 +99,68 @@ class ListUtilsTest : StringSpec({
             )
         ) shouldBe ImmutableList(1, 7)
     }
+
+    "sequence of ImmutableList with Empty should return Empty" {
+        sequence(
+            ImmutableList(
+                Resolution(1),
+                Resolution(2),
+                Resolution.Empty,
+                Resolution(7)
+            )
+        ) shouldBe Resolution.Empty
+    }
+
+    "sequence of ImmutableList should return Resolution of ImmutableList" {
+        sequence(
+            ImmutableList(
+                Resolution(1),
+                Resolution(2),
+                Resolution(7)
+            )
+        ) shouldBe Resolution(ImmutableList(1, 2, 7))
+    }
+
+    "sequence of ImmutableList with Failure should return Failure" {
+        sequence(
+            ImmutableList(
+                Resolution(1),
+                Resolution(2),
+                Resolution.failure(RuntimeException("Error")),
+                Resolution(7)
+            )
+        ) shouldBe Resolution.failure(RuntimeException("Error"))
+    }
+
+    "sequenceV2 of ImmutableList with Empty should return Empty" {
+        sequenceV2(
+            ImmutableList(
+                Resolution(1),
+                Resolution(2),
+                Resolution.Empty,
+                Resolution(7)
+            )
+        ) shouldBe Resolution.Empty
+    }
+
+    "sequenceV2 of ImmutableList should return Resolution of ImmutableList" {
+        sequenceV2(
+            ImmutableList(
+                Resolution(1),
+                Resolution(2),
+                Resolution(7)
+            )
+        ) shouldBe Resolution(ImmutableList(1, 2, 7))
+    }
+
+    "sequenceV2 of ImmutableList with Failure should return Failure" {
+        sequenceV2(
+            ImmutableList(
+                Resolution(1),
+                Resolution(2),
+                Resolution.failure(RuntimeException("Error")),
+                Resolution(7)
+            )
+        ) shouldBe Resolution.failure(RuntimeException("Error"))
+    }
 })
