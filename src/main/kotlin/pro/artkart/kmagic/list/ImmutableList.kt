@@ -3,6 +3,7 @@ package pro.artkart.kmagic.list
 import pro.artkart.kmagic.exception.Either
 import pro.artkart.kmagic.exception.Resolution
 import java.math.BigDecimal
+import java.util.concurrent.ExecutorService
 
 sealed class ImmutableList<T> {
 
@@ -13,6 +14,12 @@ sealed class ImmutableList<T> {
         override fun isEmpty(): Boolean = true
 
         override fun headSafe(): Resolution<Nothing> = Resolution.Empty
+
+        override fun <R> foldToPair(
+            identity: R,
+            zero: R,
+            f: (R) -> (Nothing) -> R
+        ): Pair<R, ImmutableList<Nothing>> = Pair(identity, Nil)
 
         override fun toString(): String = "[Nil]"
 
@@ -32,6 +39,21 @@ sealed class ImmutableList<T> {
 
         override fun headSafe(): Resolution<T> = Resolution(head)
 
+        override fun <R> foldToPair(
+            identity: R,
+            zero: R,
+            f: (R) -> (T) -> R
+        ): Pair<R, ImmutableList<T>> {
+            tailrec fun foldToPair(acc: R, list: ImmutableList<T>): Pair<R, ImmutableList<T>> = when (list) {
+                Nil -> Pair(acc, list)
+                is Cons -> if (acc == zero)
+                    Pair(acc, list)
+                else
+                    foldToPair(f(acc)(list.head), list.tail)
+            }
+            return foldToPair(identity, this)
+        }
+
         override fun toString(): String = "[${toString("", this)}Nil]"
 
         private tailrec fun toString(acc: String, list: ImmutableList<T>): String =
@@ -46,6 +68,8 @@ sealed class ImmutableList<T> {
     abstract fun isEmpty(): Boolean
 
     abstract fun headSafe(): Resolution<T>
+
+    abstract fun <R> foldToPair(identity: R, zero: R, f: (R) -> (T) -> R): Pair<R, ImmutableList<T>>
 
     fun lastSafe(): Resolution<T> = foldLeft(Resolution()) { { Resolution(it) } }
 
@@ -117,6 +141,29 @@ sealed class ImmutableList<T> {
 
     fun <R> foldLeft(identity: R, transform: (R) -> (T) -> R): R = foldLeft(this, identity, transform)
 
+    fun <R> foldLeft(identity: R, zero: R, transform: (R) -> (T) -> R): R {
+        tailrec fun foldLeft(acc: R, list: ImmutableList<T>): R = if (acc == zero)
+            acc
+        else
+            when (list) {
+                Nil -> identity
+                is Cons -> foldLeft(transform(acc)(list.head), list.tail)
+            }
+
+        return foldLeft(identity, this)
+    }
+
+    fun <R> foldLeft(identity: R, p: (R) -> Boolean, transform: (R) -> (T) -> R): R {
+        tailrec fun foldLeft(acc: R, list: ImmutableList<T>): R = if (p(acc))
+            acc
+        else
+            when (list) {
+                Nil -> identity
+                is Cons -> foldLeft(transform(acc)(list.head), list.tail)
+            }
+        return foldLeft(identity, this)
+    }
+
     fun <R> map(transform: (T) -> R): ImmutableList<R> = this.coFoldRight(invoke()) { item ->
         { acc -> acc.cons(transform(item)) }
     }
@@ -133,6 +180,220 @@ sealed class ImmutableList<T> {
     fun filterV2(p: (T) -> Boolean): ImmutableList<T> = this.flatMap { if (p(it)) invoke(it) else invoke() }
 
     fun <R> flatMap(transform: (T) -> ImmutableList<R>): ImmutableList<R> = flatten(this.map(transform))
+
+    fun <U, V> unzip(f: (T) -> Pair<U, V>): Pair<ImmutableList<U>, ImmutableList<V>> =
+        coFoldRight(Pair(invoke(), invoke())) { item ->
+            { acc ->
+                f(item).let { pair ->
+                    Pair(acc.first.cons(pair.first), acc.second.cons(pair.second))
+                }
+            }
+        }
+
+    fun getAt(index: Int): Resolution<T> {
+        tailrec fun getAt(list: ImmutableList<T>, idx: Int): Resolution<T> =
+            when (list) {
+                Nil -> Resolution.Empty
+                is Cons ->
+                    if (idx == index)
+                        Resolution(list.head)
+                    else
+                        getAt(list.tail, idx + 1)
+            }
+        return getAt(this, 0)
+    }
+
+    fun getAtV2(index: Int): Resolution<T> = foldLeft(Pair<Resolution<T>, Int>(Resolution.Empty, 0)) { acc ->
+        { item ->
+            if (acc.second == index)
+                Pair(Resolution(item), acc.second + 1)
+            else
+                Pair(acc.first, acc.second + 1)
+        }
+    }.first
+
+    fun getAtV3(index: Int): Resolution<T> = foldLeft(
+        PairAcc(Resolution.Empty), PairAcc(Resolution<T>(), index)
+    ) { acc ->
+        { item ->
+            PairAcc(Resolution(item), acc.index + 1)
+        }
+    }.acc
+
+    fun getAtV4(index: Int): Resolution<T> = foldLeft<PairAcc<T>>(
+        PairAcc(Resolution.Empty),
+        { it == PairAcc(Resolution.Empty, index) })
+    { acc ->
+        { item ->
+            PairAcc(Resolution(item), acc.index + 1)
+        }
+    }.acc
+
+    fun split(index: Int): ImmutableList<ImmutableList<T>> {
+        tailrec fun split(idx: Int, left: ImmutableList<T>, right: ImmutableList<T>): ImmutableList<ImmutableList<T>> =
+            when (right) {
+                Nil -> invoke(left.reverseV2(), right)
+                is Cons -> if (idx == index)
+                    invoke(left.reverseV2(), right)
+                else
+                    split(idx + 1, left.cons(right.head), right.tail)
+            }
+        return split(0, invoke(), this)
+    }
+
+    fun splitAt(index: Int): Pair<ImmutableList<T>, ImmutableList<T>> {
+        tailrec fun splitAt(
+            idx: Int,
+            acc: ImmutableList<T>,
+            list: ImmutableList<T>
+        ): Pair<ImmutableList<T>, ImmutableList<T>> = when (list) {
+            Nil -> Pair(acc.reverseV2(), list)
+            is Cons -> if (idx == index)
+                Pair(acc.reverseV2(), list)
+            else
+                splitAt(idx + 1, acc.cons(list.head), list.tail)
+        }
+        return when {
+            index < 0 -> splitAt(0)
+            index > size -> splitAt(size)
+            else -> splitAt(0, invoke(), this)
+        }
+    }
+
+    fun splitAtV2(index: Int): Pair<ImmutableList<T>, ImmutableList<T>> = this.foldLeft(
+        TripleAcc(invoke<T>(), invoke(), 0)
+    ) { acc ->
+        { item ->
+            if (acc.index < index)
+                TripleAcc(acc.left.cons(item), acc.right, acc.index + 1)
+            else
+                TripleAcc(acc.left, acc.right.cons(item), acc.index + 1)
+        }
+    }.let { Pair(it.left.reverseV2(), it.right.reverseV2()) }
+
+    fun splitAtV3(index: Int): Pair<ImmutableList<T>, ImmutableList<T>> = this.foldLeft(
+        TripleAcc(invoke(), this),
+        TripleAcc(invoke(), invoke(), index - 1)
+    ) { acc ->
+        { item ->
+            TripleAcc(
+                acc.left.cons(item),
+                (acc.right as Cons).tail,
+                acc.index + 1
+            )
+        }
+    }.let { Pair(it.left.reverseV2(), it.right) }
+
+    fun splitAtV4(index: Int): Pair<ImmutableList<T>, ImmutableList<T>> = foldToPair(
+        PairWithList(invoke()),
+        PairWithList(this, index - 1)
+    ) { acc ->
+        { item ->
+            PairWithList(acc.list.cons(item), acc.index + 1)
+        }
+    }.let { (pair, list) -> Pair(pair.list.reverseV2(), list) }
+
+    fun startsWith(sub: ImmutableList<T>): Boolean {
+        tailrec fun statsWith(list: ImmutableList<T>, subList: ImmutableList<T>): Boolean =
+            when (subList) {
+                Nil -> true
+                is Cons -> when (list) {
+                    Nil -> false
+                    is Cons -> list.head == subList.head && statsWith(list.tail, subList.tail)
+                }
+            }
+        return statsWith(this, sub)
+    }
+
+    fun hasSublist(sub: ImmutableList<T>): Boolean {
+        tailrec fun hasSublist(list: ImmutableList<T>): Boolean = when (list) {
+            Nil -> sub.isEmpty()
+            is Cons -> list.startsWith(sub) || hasSublist(list.tail)
+        }
+        return hasSublist(this)
+    }
+
+    fun <R> groupBy(f: (T) -> R): Map<R, ImmutableList<T>> {
+        tailrec fun groupBy(acc: Map<R, ImmutableList<T>>, list: ImmutableList<T>): Map<R, ImmutableList<T>> =
+            when (list) {
+                Nil -> acc
+                is Cons -> {
+                    val key = f(list.head)
+                    groupBy(acc + (key to acc.getOrDefault(key, invoke()).cons(list.head)), list.tail)
+                }
+            }
+        return groupBy(mutableMapOf(), this.reverseV2())
+    }
+
+    fun <R> groupByV2(f: (T) -> R): Map<R, ImmutableList<T>> {
+        fun groupByV2(list: ImmutableList<T>): Map<R, ImmutableList<T>> =
+            when (list) {
+                Nil -> mapOf()
+                is Cons -> {
+                    val key = f(list.head)
+                    val acc = groupByV2(list.tail)
+                    acc + (key to acc.getOrDefault(key, invoke()).cons(list.head))
+                }
+            }
+        return groupByV2(this)
+    }
+
+    fun <R> groupByV3(f: (T) -> R): Map<R, ImmutableList<T>> = reverseV2().foldLeft(mapOf()) { acc ->
+        { item ->
+            f(item).let { key ->
+                acc + (key to (acc[key] ?: invoke()).cons(item))
+            }
+        }
+    }
+
+    fun <R> groupByV4(f: (T) -> R): Map<R, ImmutableList<T>> = coFoldRight(mapOf()) { item ->
+        { acc ->
+            f(item).let { key ->
+                acc + (key to (acc[key] ?: invoke()).cons(item))
+            }
+        }
+    }
+
+    fun exists(p: (T) -> Boolean): Boolean {
+        tailrec fun exists(list: ImmutableList<T>): Boolean = when (list) {
+            Nil -> false
+            is Cons -> p(list.head) || exists(list.tail)
+        }
+        return exists(this)
+    }
+
+    fun existsV2(p: (T) -> Boolean): Boolean = foldLeft(
+        identity = false,
+        zero = true
+    ) { { p(it) } }
+
+    fun forAll(p: (T) -> Boolean): Boolean = foldLeft(
+        identity = true,
+        zero = false
+    ) { { p(it) } }
+
+    fun divide(depth: Int): ImmutableList<ImmutableList<T>> {
+        tailrec fun divide(
+            currentDepth: Int,
+            acc: ImmutableList<ImmutableList<T>>
+        ): ImmutableList<ImmutableList<T>> = if (currentDepth == depth)
+            acc
+        else
+            divide(
+                currentDepth + 1,
+                acc.flatMap {
+                    it.split(it.size / 2)
+                })
+        return divide(0, ImmutableList(this))
+    }
+
+    // todo 8.6.3 (278)
+    fun <R> parFoldLeft(
+        es: ExecutorService,
+        identity: R,
+        f: (R) -> (T) -> R,
+        m: (R) -> (R) -> R
+    ): Resolution<R> = Resolution.Empty
 
     companion object {
 
@@ -189,6 +450,40 @@ sealed class ImmutableList<T> {
         operator fun <T> invoke(vararg items: T): ImmutableList<T> =
             items.foldRight(Nil as ImmutableList<T>) { item, acc -> Cons(item, acc) }
     }
+}
+
+class PairAcc<out T>(
+    val acc: Resolution<T>,
+    val index: Int = -1
+) {
+
+    override fun equals(other: Any?): Boolean =
+        other === this || (other is PairAcc<T> && other.index == index)
+
+    override fun hashCode(): Int = (index + 42) * 71 + 67
+}
+
+class TripleAcc<T>(
+    val left: ImmutableList<T>,
+    val right: ImmutableList<T>,
+    val index: Int = -1
+) {
+
+    override fun equals(other: Any?): Boolean =
+        other === this || (other is TripleAcc<T> && other.index == index)
+
+    override fun hashCode(): Int = (index + 42) * 71 + 67
+}
+
+class PairWithList<T>(
+    val list: ImmutableList<T>,
+    val index: Int = -1
+) {
+
+    override fun equals(other: Any?): Boolean =
+        other === this || (other is PairWithList<T> && other.index == index)
+
+    override fun hashCode(): Int = (index + 42) * 71 + 67
 }
 
 fun ImmutableList<Int>.sum(): Int {

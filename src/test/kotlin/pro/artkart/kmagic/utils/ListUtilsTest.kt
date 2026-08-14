@@ -163,4 +163,51 @@ class ListUtilsTest : StringSpec({
             )
         ) shouldBe Resolution.failure(RuntimeException("Error"))
     }
+
+    "zip should return new ImmutableList combined from two" {
+        zip(
+            ImmutableList(2, 3, 4),
+            ImmutableList("2", "3", "4"),
+        ) { l -> { r -> r.repeat(l) } } shouldBe ImmutableList(
+            "22", "333", "4444"
+        )
+    }
+
+    "product should multiply two ImmutableLists to new ImmutableList" {
+        product(
+            ImmutableList(2, 3),
+            ImmutableList("2", "3", "4")
+        ) { l -> { r -> r.repeat(l) } } shouldBe ImmutableList(
+            "22", "33", "44", "222", "333", "444"
+        )
+    }
+
+    "unzip ImmutableList of pairs to Pair of ImmutableLists" {
+        unzip(
+            ImmutableList(
+                Pair(1, "one"),
+                Pair(2, "two"),
+                Pair(3, "three")
+            )
+        ) shouldBe Pair(
+            ImmutableList(1, 2, 3),
+            ImmutableList("one", "two", "three")
+        )
+    }
+
+    "unfold should return ImmutableList" {
+        unfold(0) { if (it < 3) Option(Pair(it, it + 1)) else Option() } shouldBe ImmutableList(
+            0, 1, 2
+        )
+    }
+
+    "unfoldV2 should return ImmutableList" {
+        unfoldV2(0) { if (it <= 3) Option(Pair(it, it + 1)) else Option() } shouldBe ImmutableList(
+            0, 1, 2, 3
+        )
+    }
+
+    "range(3, 7) should return ImmutableList(3, 4, 5, 6)" {
+        range(3, 7) shouldBe ImmutableList(3, 4, 5, 6)
+    }
 })

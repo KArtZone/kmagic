@@ -174,4 +174,175 @@ class ImmutableListTest : StringSpec({
     "ImmutableList(1, 2, 3).headSafeV3() should return Resolution(1)" {
         ImmutableList(1, 2, 3).headSafeV3() shouldBe Resolution(1)
     }
+
+    "ImmutableList(1, 22, 333).unzip { Pair(it, it.length) } to Pair of ImmutableLists" {
+        ImmutableList("1", "22", "333").unzip { Pair(it, it.length) } shouldBe Pair(
+            ImmutableList("1", "22", "333"),
+            ImmutableList(1, 2, 3)
+        )
+    }
+
+    "ImmutableList(1, 2, 3).getAt(2) shouldBe Resolution(3)" {
+        ImmutableList(1, 2, 3).getAt(2) shouldBe Resolution(3)
+    }
+
+    "ImmutableList(1, 2, 3).getAt(10) shouldBe Resolution.Empty" {
+        ImmutableList(1, 2, 3).getAt(10) shouldBe Resolution.Empty
+    }
+
+    "ImmutableList<Int>().getAt(1) shouldBe Resolution.Empty" {
+        ImmutableList<Int>().getAt(1) shouldBe Resolution.Empty
+    }
+
+    "ImmutableList(1, 2, 3).getAt(-1) shouldBe Resolution.Empty" {
+        ImmutableList(1, 2, 3).getAt(-1) shouldBe Resolution.Empty
+    }
+
+    "ImmutableList(1, 2, 3).getAtV2(2) shouldBe Resolution(3)" {
+        ImmutableList(1, 2, 3).getAtV2(2) shouldBe Resolution(3)
+    }
+
+    "ImmutableList(1, 2, 3).getAtV2(10) shouldBe Resolution.Empty" {
+        ImmutableList(1, 2, 3).getAtV2(10) shouldBe Resolution.Empty
+    }
+
+    "ImmutableList<Int>().getAtV2(1) shouldBe Resolution.Empty" {
+        ImmutableList<Int>().getAtV2(1) shouldBe Resolution.Empty
+    }
+
+    "ImmutableList(1, 2, 3).getAtV2(-1) shouldBe Resolution.Empty" {
+        ImmutableList(1, 2, 3).getAtV2(-1) shouldBe Resolution.Empty
+    }
+
+    "ImmutableList(1, 2, 3).getAtV3(2) shouldBe Resolution(3)" {
+        ImmutableList(1, 2, 3).getAtV3(2) shouldBe Resolution(3)
+    }
+
+    "ImmutableList(1, 2, 3).getAtV3(10) shouldBe Resolution.Empty" {
+        ImmutableList(1, 2, 3).getAtV3(10) shouldBe Resolution.Empty
+    }
+
+    "ImmutableList<Int>().getAtV3(1) shouldBe Resolution.Empty" {
+        ImmutableList<Int>().getAtV3(1) shouldBe Resolution.Empty
+    }
+
+    "ImmutableList(1, 2, 3).getAtV3(-1) shouldBe Resolution.Empty" {
+        ImmutableList(1, 2, 3).getAtV3(-1) shouldBe Resolution.Empty
+    }
+
+    "ImmutableList(1, 2, 3).getAtV4(2) shouldBe Resolution(3)" {
+        ImmutableList(1, 2, 3).getAtV4(2) shouldBe Resolution(3)
+    }
+
+    "ImmutableList(1, 2, 3).getAtV4(10) shouldBe Resolution.Empty" {
+        ImmutableList(1, 2, 3).getAtV4(10) shouldBe Resolution.Empty
+    }
+
+    "ImmutableList<Int>().getAtV4(1) shouldBe Resolution.Empty" {
+        ImmutableList<Int>().getAtV4(1) shouldBe Resolution.Empty
+    }
+
+    "ImmutableList(1, 2, 3).getAtV4(-1) shouldBe Resolution.Empty" {
+        ImmutableList(1, 2, 3).getAtV4(-1) shouldBe Resolution.Empty
+    }
+
+    "splitAt should split ImmutableList by index to two ImmutableLists" {
+        ImmutableList(1, 2, 3, 4).splitAt(2) shouldBe Pair(
+            ImmutableList(1, 2),
+            ImmutableList(3, 4)
+        )
+    }
+
+    "splitAtV2 should split ImmutableList by index to two ImmutableLists" {
+        ImmutableList(1, 2, 3, 4).splitAtV2(2) shouldBe Pair(
+            ImmutableList(1, 2),
+            ImmutableList(3, 4)
+        )
+    }
+
+    "splitAtV3 should split ImmutableList by index to two ImmutableLists" {
+        ImmutableList(1, 2, 3, 4).splitAtV3(2) shouldBe Pair(
+            ImmutableList(1, 2),
+            ImmutableList(3, 4)
+        )
+    }
+
+    "splitAtV4 should split ImmutableList by index to two ImmutableLists" {
+        ImmutableList(1, 2, 3, 4).splitAtV4(2) shouldBe Pair(
+            ImmutableList(1, 2),
+            ImmutableList(3, 4)
+        )
+    }
+
+    "ImmutableList(1, 2, 3).hasSublist(ImmutableList(1, 2)) shouldBe true" {
+        ImmutableList(1, 2, 3).hasSublist(ImmutableList(2, 3)) shouldBe true
+    }
+
+    "ImmutableList(1, 2, 3).hasSublist(ImmutableList(2, 1)) shouldBe false" {
+        ImmutableList(1, 2, 3).hasSublist(ImmutableList(2, 1)) shouldBe false
+    }
+
+    "groupBy should group by lambda to map" {
+        ImmutableList(1, 2, 3, 5, 7, 42).groupBy { it % 2 == 0 } shouldBe mutableMapOf(
+            true to ImmutableList(2, 42),
+            false to ImmutableList(1, 3, 5, 7)
+        )
+    }
+
+    "groupByV2 should group by lambda to map" {
+        ImmutableList(1, 2, 3, 5, 7, 42).groupByV2 { it % 2 == 0 } shouldBe mutableMapOf(
+            true to ImmutableList(2, 42),
+            false to ImmutableList(1, 3, 5, 7)
+        )
+    }
+
+    "groupByV3 should group by lambda to map" {
+        ImmutableList(1, 2, 3, 5, 7, 42).groupByV3 { it % 2 == 0 } shouldBe mutableMapOf(
+            true to ImmutableList(2, 42),
+            false to ImmutableList(1, 3, 5, 7)
+        )
+    }
+
+    "groupByV4 should group by lambda to map" {
+        ImmutableList(1, 2, 3, 5, 7, 42).groupByV4 { it % 2 == 0 } shouldBe mutableMapOf(
+            true to ImmutableList(2, 42),
+            false to ImmutableList(1, 3, 5, 7)
+        )
+    }
+
+    "ImmutableList(1, 2, 3).exists { it == 2} shouldBe true" {
+        ImmutableList(1, 2, 3).exists { it == 2 } shouldBe true
+    }
+
+    "ImmutableList(1, 2, 3).existsV2 { it == 2} shouldBe true" {
+        ImmutableList(1, 2, 3).existsV2 { it == 2 } shouldBe true
+    }
+
+    "ImmutableList(1, 2, 3).existsV2 { it == 7} shouldBe false" {
+        ImmutableList(1, 2, 3).existsV2 { it == 7 } shouldBe false
+    }
+
+    "ImmutableList(2, 4, 6, 8).forAll { it % 2 == 0 } shouldBe true" {
+        ImmutableList(2, 4, 6, 8).forAll { it % 2 == 0 } shouldBe true
+    }
+
+    "ImmutableList(2, 4, 6, 8).forAll { it % 2 == 0 } shouldBe false" {
+        ImmutableList(2, 4, 1, 6, 8).forAll { it % 2 == 0 } shouldBe false
+    }
+
+    "ImmutableList(1, 2, 3, 4).split(2) should split list of half" {
+        ImmutableList(1, 2, 3, 4).split(2) shouldBe ImmutableList(
+            ImmutableList(1, 2),
+            ImmutableList(3, 4)
+        )
+    }
+
+    "ImmutableList(1, 2, 3, 4).divide(2) should divide to List of four Lists" {
+        ImmutableList(1, 2, 3, 4).divide(2) shouldBe ImmutableList(
+            ImmutableList(1),
+            ImmutableList(2),
+            ImmutableList(3),
+            ImmutableList(4)
+        )
+    }
 })

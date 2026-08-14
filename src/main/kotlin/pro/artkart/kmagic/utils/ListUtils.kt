@@ -101,3 +101,46 @@ fun <T, R> traverseResolution(list: ImmutableList<T>, transform: (T) -> Resoluti
 
 fun <T> sequenceV2(list: ImmutableList<Resolution<T>>): Resolution<ImmutableList<T>> =
     traverseResolution(list) { it }
+
+fun <T, U, R> zip(left: ImmutableList<T>, right: ImmutableList<U>, f: (T) -> (U) -> R): ImmutableList<R> {
+    fun zip(acc: ImmutableList<R>, left: ImmutableList<T>, right: ImmutableList<U>): ImmutableList<R> =
+        when {
+            left is ImmutableList.Cons && right is ImmutableList.Cons -> zip(
+                acc.cons(f(left.head)(right.head)),
+                left.tail,
+                right.tail
+            )
+
+            else -> acc.reverseV2()
+        }
+    return zip(ImmutableList(), left, right)
+}
+
+fun <T, U, R> product(left: ImmutableList<T>, right: ImmutableList<U>, f: (T) -> (U) -> R): ImmutableList<R> =
+    left.flatMap { leftItem ->
+        right.map { rightItem ->
+            f(leftItem)(rightItem)
+        }
+    }
+
+fun <T, U> unzip(list: ImmutableList<Pair<T, U>>): Pair<ImmutableList<T>, ImmutableList<U>> =
+    list.unzip { it }
+
+fun <S, T> unfold(seed: S, f: (S) -> Option<Pair<T, S>>): ImmutableList<T> {
+    tailrec fun unfold(acc: ImmutableList<T>, current: Option<Pair<T, S>>): ImmutableList<T> = when (current) {
+        Option.None -> acc
+        is Option.Some -> unfold(acc.cons(current.value.first), f(current.value.second))
+    }
+    return unfold(ImmutableList(), f(seed)).reverseV2()
+}
+
+fun <S, T> unfoldV2(seed: S, f: (S) -> Option<Pair<T, S>>): ImmutableList<T> =
+    f(seed).map<ImmutableList<T>> { unfoldV2(it.second, f).cons(it.first) }
+        .getOrElse { ImmutableList() }
+
+fun range(start: Int, end: Int): ImmutableList<Int> = unfoldV2(start) {
+    if (it < end)
+        Option(Pair(it, it + 1))
+    else
+        Option()
+}
