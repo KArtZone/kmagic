@@ -3,6 +3,7 @@ package pro.artkart.kmagic.list
 import pro.artkart.kmagic.exception.Either
 import pro.artkart.kmagic.exception.Resolution
 import java.math.BigDecimal
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorService
 
 sealed class ImmutableList<T> {
@@ -375,25 +376,64 @@ sealed class ImmutableList<T> {
     fun divide(depth: Int): ImmutableList<ImmutableList<T>> {
         tailrec fun divide(
             currentDepth: Int,
-            acc: ImmutableList<ImmutableList<T>>
-        ): ImmutableList<ImmutableList<T>> = if (currentDepth == depth)
-            acc
+            list: ImmutableList<ImmutableList<T>>
+        ): ImmutableList<ImmutableList<T>> = when (list) {
+            Nil -> list
+            is Cons -> if (list.head.size < 2 || currentDepth == depth)
+                list
+            else
+                divide(
+                    currentDepth + 1,
+                    list.flatMap {
+                        it.split(it.size / 2)
+                    })
+        }
+
+        return if (this.isEmpty())
+            ImmutableList(this)
         else
-            divide(
-                currentDepth + 1,
-                acc.flatMap {
-                    it.split(it.size / 2)
-                })
-        return divide(0, ImmutableList(this))
+            divide(0, ImmutableList(this))
     }
 
-    // todo 8.6.3 (278)
     fun <R> parFoldLeft(
         es: ExecutorService,
         identity: R,
         f: (R) -> (T) -> R,
         m: (R) -> (R) -> R
-    ): Resolution<R> = Resolution.Empty
+    ): Resolution<R> = try {
+        divide(1024)
+            .map { list -> es.submit<R> { list.foldLeft(identity, f) } }
+            .map { future ->
+                try {
+                    future.get()
+                } catch (e: InterruptedException) {
+                    throw RuntimeException(e)
+                } catch (e: ExecutionException) {
+                    throw RuntimeException(e)
+                }
+            }
+            .foldLeft(identity, m)
+            .let { Resolution(it) }
+    } catch (e: Exception) {
+        Resolution.failure(RuntimeException(e))
+    }
+
+    fun <R> parMap(es: ExecutorService, f: (T) -> R): Resolution<ImmutableList<R>> =
+        try {
+            this.map { es.submit<R> { f(it) } }
+                .map { future ->
+                    try {
+                        future.get()
+                    } catch (e: InterruptedException) {
+                        throw RuntimeException(e)
+                    } catch (e: ExecutionException) {
+                        throw RuntimeException(e)
+                    }
+                }
+                .let { Resolution(it) }
+        } catch (e: Exception) {
+            Resolution.failure(RuntimeException(e))
+        }
 
     companion object {
 

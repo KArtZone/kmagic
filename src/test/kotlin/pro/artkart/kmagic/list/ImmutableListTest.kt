@@ -6,6 +6,8 @@ import pro.artkart.kmagic.exception.Either
 import pro.artkart.kmagic.exception.Resolution
 import pro.artkart.kmagic.list.ImmutableList.Companion.max
 import java.math.BigDecimal
+import java.util.concurrent.Executors.newFixedThreadPool
+import kotlin.math.pow
 
 class ImmutableListTest : StringSpec({
 
@@ -344,5 +346,22 @@ class ImmutableListTest : StringSpec({
             ImmutableList(3),
             ImmutableList(4)
         )
+    }
+
+    "parFoldLeft should divide list to threads and compute result accordingly functions" {
+        ImmutableList(1, 2, 3, 4, 5, 6, 7, 8)
+            .parFoldLeft(
+                es = newFixedThreadPool(4),
+                identity = 2.0,
+                f = { acc -> { item -> acc * acc.pow(item.toDouble()) } },
+                m = { acc -> { item -> acc * item } }
+            ) shouldBe Resolution(3.5184372088832E13)
+    }
+
+    "parMap should mapping ImmutableList in parallel" {
+        ImmutableList(2, 4, 8, 16)
+            .parMap(newFixedThreadPool(4)) {
+                2.0.pow(it.toDouble())
+            } shouldBe Resolution(ImmutableList(4.0, 16.0, 256.0, 65536.0))
     }
 })
