@@ -12,6 +12,24 @@ class Deferred<T>(f: () -> T) : () -> T {
 
     fun <R> flatMap(f: (T) -> Deferred<R>): Deferred<R> = Deferred { f(value)() }
 
+    fun forEach(condition: Boolean, successEffect: (T) -> Unit, failureEffect: () -> Unit = {}) =
+        if (condition)
+            successEffect(value)
+        else
+            failureEffect()
+
+    fun forEach(condition: Boolean, successEffect: () -> Unit = {}, failureEffect: (T) -> Unit) =
+        if (condition)
+            successEffect()
+        else
+            failureEffect(value)
+
+    fun forEach(condition: Boolean, successEffect: (T) -> Unit, failureEffect: (T) -> Unit) =
+        if (condition)
+            successEffect(value)
+        else
+            failureEffect(value)
+
     override operator fun invoke(): T = value
 
     companion object {
