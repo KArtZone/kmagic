@@ -99,11 +99,3 @@ sealed class Stream<out T> {
         operator fun <T> invoke(): Stream<T> = Empty
     }
 }
-
-fun main() {
-
-    Stream.from(0)
-        .takeWhile { it < 4 }
-        .toList()
-        .let { println(it) }
-}
