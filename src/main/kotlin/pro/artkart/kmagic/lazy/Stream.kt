@@ -17,7 +17,7 @@ sealed class Stream<out T> {
 
     abstract fun <R> foldRight(identity: Deferred<R>, f: (T) -> (Deferred<R>) -> R): R
 
-    private object Empty : Stream<Nothing>() {
+    internal object Empty : Stream<Nothing>() {
         override fun isEmpty(): Boolean = true
         override fun head(): Resolution<Nothing> = Resolution()
         override fun tail(): Resolution<Stream<Nothing>> = Resolution()
@@ -30,8 +30,8 @@ sealed class Stream<out T> {
     }
 
     private class Cons<T>(
-        internal val hd: Deferred<T>,
-        internal val tl: Deferred<Stream<T>>
+        val hd: Deferred<T>,
+        val tl: Deferred<Stream<T>>
     ) : Stream<T>() {
 
         override fun isEmpty(): Boolean = false
@@ -171,6 +171,6 @@ fun fibs(): Stream<Int> = Stream.iterate(Pair(1, 1)) { (first, second) ->
     Pair(second, first + second)
 }.map { it.first }
 
-fun fibV2(): Stream<Int> = Stream.unfold(Pair(1, 1)) { (first, second) ->
+fun fibsV2(): Stream<Int> = Stream.unfold(Pair(1, 1)) { (first, second) ->
     Resolution(Pair(first, Pair(second, first + second)))
 }

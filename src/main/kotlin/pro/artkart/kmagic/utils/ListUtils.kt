@@ -1,6 +1,8 @@
 package pro.artkart.kmagic.utils
 
 import pro.artkart.kmagic.exception.Resolution
+import pro.artkart.kmagic.lazy.Deferred
+import pro.artkart.kmagic.lazy.Stream
 import pro.artkart.kmagic.list.ImmutableList
 import pro.artkart.kmagic.list.sum
 import pro.artkart.kmagic.optional.Option
@@ -144,3 +146,14 @@ fun range(start: Int, end: Int): ImmutableList<Int> = unfoldV2(start) {
     else
         Option()
 }
+
+fun <T> ImmutableList<T>.stream(): Stream<T> = foldRight(Deferred { Stream.Empty as Stream<T> }) { item ->
+    { acc ->
+        Deferred { Stream.cons(Deferred { item }, acc) }
+    }
+}()
+
+fun String.toImmutableList(): ImmutableList<Char> = this.toCharArray()
+    .foldRight(ImmutableList()) { char, acc ->
+        acc.cons(char)
+    }
