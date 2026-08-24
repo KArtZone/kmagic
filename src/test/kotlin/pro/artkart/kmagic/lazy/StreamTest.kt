@@ -1,11 +1,7 @@
-package pro.artkart.kmagic
+package pro.artkart.kmagic.lazy
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import pro.artkart.kmagic.lazy.Deferred
-import pro.artkart.kmagic.lazy.Stream
-import pro.artkart.kmagic.lazy.fibs
-import pro.artkart.kmagic.lazy.fibsV2
 import pro.artkart.kmagic.list.ImmutableList
 import pro.artkart.kmagic.utils.stream
 import pro.artkart.kmagic.utils.toImmutableList
