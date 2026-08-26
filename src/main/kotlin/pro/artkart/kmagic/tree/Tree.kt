@@ -58,6 +58,50 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
         }
     }
 
+    fun <R> fold(identity: R, transform: (R) -> (T) -> R, merge: (R) -> (R) -> R): R = when (this) {
+        Empty -> identity
+        is Node -> transform(
+            merge(
+                left.fold(identity, transform, merge)
+            )(
+                right.fold(identity, transform, merge)
+            )
+        )(value)
+    }
+
+    fun <R> foldLeft(identity: R, transform: (R) -> (T) -> R, merge: (R) -> (R) -> R): R = when (this) {
+        Empty -> identity
+        is Node -> merge(
+            left.foldLeft(identity, transform, merge)
+        )(
+            transform(right.foldLeft(identity, transform, merge))(value)
+        )
+    }
+
+    fun <R> foldRight(identity: R, f: (T) -> (R) -> R, g: (R) -> (R) -> R): R = when (this) {
+        Empty -> identity
+        is Node -> g(
+            f(value)(left.foldRight(identity, f, g))
+        )(
+            right.foldRight(identity, f, g)
+        )
+    }
+
+    fun <R> foldInOrder(identity: R, transform: (R) -> (T) -> (R) -> R): R = when (this) {
+        Empty -> identity
+        is Node -> transform(left.foldInOrder(identity, transform))(value)(right.foldInOrder(identity, transform))
+    }
+
+    fun <R> foldPreOrder(identity: R, transform: (T) -> (R) -> (R) -> R): R = when (this) {
+        Empty -> identity
+        is Node -> transform(value)(left.foldPreOrder(identity, transform))(right.foldPreOrder(identity, transform))
+    }
+
+    fun <R> foldPostOrder(identity: R, transform: (R) -> (R) -> (T) -> R): R = when (this) {
+        Empty -> identity
+        is Node -> transform(left.foldPostOrder(identity, transform))(right.foldPostOrder(identity, transform))(value)
+    }
+
     operator fun plus(other: Tree<@UnsafeVariance T>): Tree<T> = when (this) {
         Empty -> other
         is Node -> when (other) {
@@ -101,6 +145,9 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
 
         operator fun <T : Comparable<T>> invoke(list: ImmutableList<T>): Tree<T> =
             list.foldLeft(invoke()) { acc -> { item -> acc + item } }
+
+        // todo have to implement 10.10
+        operator fun <T : Comparable<T>> invoke(left: Tree<T>, value: T, right: Tree<T>): Tree<T> = invoke()
     }
 }
 

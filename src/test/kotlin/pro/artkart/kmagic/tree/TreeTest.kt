@@ -34,7 +34,7 @@ class TreeTest : StringSpec({
         tree.size shouldBe 3
     }
 
-    "tree.height shouldBe 2" {
+    "tree.height shouldBe 1" {
         tree.height shouldBe 1
     }
 
@@ -56,5 +56,68 @@ class TreeTest : StringSpec({
 
     "Tree(3, 1, 0, 2, 4, 6).remove(5) shouldBe Tree(3, 1, 0, 2, 4, 6)" {
         Tree(3, 1, 0, 2, 4, 6).remove(5) shouldBe Tree(3, 1, 0, 2, 4, 6)
+    }
+
+    "fold as sum of tree should return 6" {
+        tree.fold(
+            0,
+            { acc -> { item -> acc + item } }) { a ->
+            { b -> a + b }
+        } shouldBe 6
+    }
+
+    "foldLeft as sum of tree should return 6" {
+        tree.foldLeft(
+            0,
+            { acc -> { item -> acc + item } }) { a ->
+            { b -> a + b }
+        } shouldBe 6
+    }
+
+    fun strPlus(str1: String): (String) -> String = { str2 -> str1 + str2 }
+
+    "straight left fold should return dbacfeg" {
+
+        Tree('d', 'b', 'a', 'c', 'f', 'e', 'g')
+            .also { println(it) }
+            .fold("", { i -> { it + i } }, ::strPlus) shouldBe "dbacfeg"
+    }
+
+    "symmetrical fold left on the left should return abcdefg" {
+        Tree('d', 'b', 'a', 'c', 'f', 'e', 'g')
+            .also { println(it) }
+            .foldLeft("", { i -> { it + i } }, ::strPlus) shouldBe "abcdefg"
+    }
+
+    "symmetrical fold right on the left should return abcdefg" {
+        Tree('d', 'b', 'a', 'c', 'f', 'e', 'g')
+            .also { println(it) }
+            .foldRight("", { i -> { it + i } }, ::strPlus) shouldBe "abcdefg"
+    }
+
+    val foldTree = Tree(4, 2, 1, 3, 6, 5, 7)
+
+    "foldTree.foldInOrder should return ImmutableList(1, 2, 3, 4, 5, 6, 7)" {
+        foldTree.foldInOrder(ImmutableList<Int>()) { left ->
+            { item ->
+                { right -> left.concat(right.cons(item)) }
+            }
+        } shouldBe ImmutableList(1, 2, 3, 4, 5, 6, 7)
+    }
+
+    "foldTree.foldPreOrder should return ImmutableList(4, 2, 1, 3, 6, 5, 7)" {
+        foldTree.foldPreOrder(ImmutableList<Int>()) { item ->
+            { left ->
+                { right -> left.cons(item).concat(right) }
+            }
+        } shouldBe ImmutableList(4, 2, 1, 3, 6, 5, 7)
+    }
+
+    "foldTree.foldPostOrder should return ImmutableList(4, 2, 1, 3, 6, 5, 7)" {
+        foldTree.foldPostOrder(ImmutableList<Int>()) { left ->
+            { right ->
+                { item -> right.concat(left).cons(item) }
+            }
+        }.reverseV2() shouldBe ImmutableList(1, 3, 2, 5, 7, 6, 4)
     }
 })
