@@ -60,13 +60,16 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
 
     fun <R> fold(identity: R, transform: (R) -> (T) -> R, merge: (R) -> (R) -> R): R = when (this) {
         Empty -> identity
-        is Node -> transform(
+        is Node ->
             merge(
-                left.fold(identity, transform, merge)
+                transform(identity)(value)
             )(
-                right.fold(identity, transform, merge)
+                merge(
+                    left.fold(identity, transform, merge)
+                )(
+                    right.fold(identity, transform, merge)
+                )
             )
-        )(value)
     }
 
     fun <R> foldLeft(identity: R, transform: (R) -> (T) -> R, merge: (R) -> (R) -> R): R = when (this) {
@@ -100,6 +103,26 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
     fun <R> foldPostOrder(identity: R, transform: (R) -> (R) -> (T) -> R): R = when (this) {
         Empty -> identity
         is Node -> transform(left.foldPostOrder(identity, transform))(right.foldPostOrder(identity, transform))(value)
+    }
+
+    fun toImmutableList(): ImmutableList<@UnsafeVariance T> = when (this) {
+        Empty -> ImmutableList()
+        is Node -> foldPreOrder(ImmutableList()) { value ->
+            { left ->
+                { right -> left.concat(right).cons(value) }
+            }
+        }
+    }
+
+    fun <R : Comparable<R>> map(transform: (T) -> R): Tree<R> = when (this) {
+        Empty -> Empty
+        is Node -> foldInOrder(invoke()) { left ->
+            { item ->
+                { right ->
+                    invoke(left, transform(item), right)
+                }
+            }
+        }
     }
 
     operator fun plus(other: Tree<@UnsafeVariance T>): Tree<T> = when (this) {
@@ -146,8 +169,24 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
         operator fun <T : Comparable<T>> invoke(list: ImmutableList<T>): Tree<T> =
             list.foldLeft(invoke()) { acc -> { item -> acc + item } }
 
-        // todo have to implement 10.10
-        operator fun <T : Comparable<T>> invoke(left: Tree<T>, value: T, right: Tree<T>): Tree<T> = invoke()
+        operator fun <T : Comparable<T>> invoke(left: Tree<T>, value: T, right: Tree<T>): Tree<T> = when {
+            ordered(left, value, right) -> Node(left, value, right)
+            ordered(right, value, left) -> Node(right, value, left)
+            else -> Tree(value) + left + right
+        }
+
+        private fun <T : Comparable<T>> ordered(left: Tree<T>, value: T, right: Tree<T>) =
+            left.max().flatMap { lMax ->
+                right.min().map { rMin ->
+                    lMax < value && rMin > value
+                }
+            }.getOrElse { left.isEmpty() && right.isEmpty() }
+                    || left.max().mapEmpty().flatMap {
+                right.min().map { it > value }
+            }.getOrElse(false)
+                    || right.min().mapEmpty().flatMap {
+                left.max().map { it < value }
+            }.getOrElse(false)
     }
 }
 

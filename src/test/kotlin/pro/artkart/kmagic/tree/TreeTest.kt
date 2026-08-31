@@ -120,4 +120,20 @@ class TreeTest : StringSpec({
             }
         }.reverseV2() shouldBe ImmutableList(1, 3, 2, 5, 7, 6, 4)
     }
+
+    "Tree(left, value, right) should construct Tree(5, 3, 2, 8, 9)" {
+        Tree(
+            Tree(3, 8),
+            5,
+            Tree(2, 9)
+        ) shouldBe Tree(5, 3, 2, 8, 9)
+    }
+
+    "foldTree.toImmutableList() should return ImmutableList(4, 2, 1, 3, 6, 5, 7)" {
+        foldTree.toImmutableList() shouldBe ImmutableList(4, 2, 1, 3, 6, 5, 7)
+    }
+
+    "Tree(-2, -3, -1).map { it * it } should return Tree(4, 1, 9)" {
+        Tree(-2, -3, -1).map { it * it } shouldBe Tree(4, 1, 9)
+    }
 })

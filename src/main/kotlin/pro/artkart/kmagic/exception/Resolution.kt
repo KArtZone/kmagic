@@ -102,6 +102,11 @@ sealed class Resolution<out T> : Serializable {
 
     fun exists(p: (T) -> Boolean): Boolean = map(p).getOrElse(false)
 
+    fun mapEmpty(): Resolution<Any> = when (this) {
+        Empty -> Resolution(Any())
+        else -> failure("Not empty")
+    }
+
     companion object {
 
         operator fun <T> invoke(value: T? = null): Resolution<T> = if (value != null)
