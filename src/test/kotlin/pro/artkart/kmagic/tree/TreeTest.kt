@@ -58,14 +58,6 @@ class TreeTest : StringSpec({
         Tree(3, 1, 0, 2, 4, 6).remove(5) shouldBe Tree(3, 1, 0, 2, 4, 6)
     }
 
-    "fold as sum of tree should return 6" {
-        tree.fold(
-            0,
-            { acc -> { item -> acc + item } }) { a ->
-            { b -> a + b }
-        } shouldBe 6
-    }
-
     "foldLeft as sum of tree should return 6" {
         tree.foldLeft(
             0,
@@ -76,22 +68,13 @@ class TreeTest : StringSpec({
 
     fun strPlus(str1: String): (String) -> String = { str2 -> str1 + str2 }
 
-    "straight left fold should return dbacfeg" {
-
-        Tree('d', 'b', 'a', 'c', 'f', 'e', 'g')
-            .also { println(it) }
-            .fold("", { i -> { it + i } }, ::strPlus) shouldBe "dbacfeg"
-    }
-
     "symmetrical fold left on the left should return abcdefg" {
         Tree('d', 'b', 'a', 'c', 'f', 'e', 'g')
-            .also { println(it) }
             .foldLeft("", { i -> { it + i } }, ::strPlus) shouldBe "abcdefg"
     }
 
     "symmetrical fold right on the left should return abcdefg" {
         Tree('d', 'b', 'a', 'c', 'f', 'e', 'g')
-            .also { println(it) }
             .foldRight("", { i -> { it + i } }, ::strPlus) shouldBe "abcdefg"
     }
 
@@ -135,5 +118,25 @@ class TreeTest : StringSpec({
 
     "Tree(-2, -3, -1).map { it * it } should return Tree(4, 1, 9)" {
         Tree(-2, -3, -1).map { it * it } shouldBe Tree(4, 1, 9)
+    }
+
+    "rotateRight() should return Tree(2, 1, 4, 3, 6, 5, 7)" {
+        foldTree.rotateRight() shouldBe Tree(2, 1, 4, 3, 6, 5, 7)
+    }
+
+    "rotateLeft() should return Tree(6, 4, 2, 1, 3, 5, 7)" {
+        foldTree.rotateLeft() shouldBe Tree(6, 4, 2, 1, 3, 5, 7)
+    }
+
+    "foldTree.maxSum() should return 17" {
+        foldTree.maxSum() shouldBe 17
+    }
+
+    "foldTree.maxPathSum() should return 22" {
+        foldTree.maxPathSum() shouldBe 22
+    }
+
+    "toListInOrderRight() should return ImmutableList(1, 2, 3, 4, 5, 6, 7)" {
+        foldTree.toListInOrderRight() shouldBe ImmutableList(1, 2, 3, 4, 5, 6, 7)
     }
 })

@@ -62,13 +62,9 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
         Empty -> identity
         is Node ->
             merge(
-                transform(identity)(value)
+                transform(right.fold(identity, transform, merge))(value)
             )(
-                merge(
-                    left.fold(identity, transform, merge)
-                )(
-                    right.fold(identity, transform, merge)
-                )
+                left.fold(identity, transform, merge)
             )
     }
 
@@ -124,6 +120,24 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
             }
         }
     }
+
+    fun rotateRight(): Tree<T> = when (this) {
+        Empty -> Empty
+        is Node -> when (left) {
+            Empty -> this
+            is Node -> Node(left.left, left.value, Node(left.right, value, right))
+        }
+    }
+
+    fun rotateLeft(): Tree<T> = when (this) {
+        Empty -> Empty
+        is Node -> when (right) {
+            Empty -> this
+            is Node -> Node(Node(left, value, right.left), right.value, right.right)
+        }
+    }
+
+    fun toListInOrderRight(): ImmutableList<@UnsafeVariance T> = unBalanceRight(ImmutableList(), this)
 
     operator fun plus(other: Tree<@UnsafeVariance T>): Tree<T> = when (this) {
         Empty -> other
@@ -187,6 +201,15 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
                     || right.min().mapEmpty().flatMap {
                 left.max().map { it < value }
             }.getOrElse(false)
+
+        private tailrec fun <T : Comparable<T>> unBalanceRight(acc: ImmutableList<T>, tree: Tree<T>): ImmutableList<T> =
+            when (tree) {
+                Empty -> acc
+                is Node -> when (tree.right) {
+                    Empty -> unBalanceRight(acc.cons(tree.value), tree.left)
+                    is Node -> unBalanceRight(acc, tree.rotateLeft())
+                }
+            }
     }
 }
 
@@ -194,3 +217,23 @@ fun <T : Comparable<T>> ImmutableList<T>.toTree(): Tree<T> =
     foldLeft(Tree()) { acc ->
         { item -> acc + item }
     }
+
+fun Tree<Int>.maxSum(): Int = when (this) {
+    Tree.Empty -> 0
+    is Tree.Node -> value + max(left.maxSum(), right.maxSum())
+}
+
+fun Tree<Int>.maxPathSum(): Int {
+    var sum = 0
+    fun Tree<Int>.maxPath(): Int = when (this) {
+        Tree.Empty -> 0
+        is Tree.Node -> {
+            val lSum = max(left.maxPath(), 0)
+            val rSum = max(right.maxPath(), 0)
+            sum = max(sum, lSum + rSum + value)
+            max(lSum, rSum) + value
+        }
+    }
+    maxPath()
+    return sum
+}
