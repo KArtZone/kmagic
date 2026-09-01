@@ -2,6 +2,7 @@ package pro.artkart.kmagic.tree
 
 import pro.artkart.kmagic.exception.Resolution
 import pro.artkart.kmagic.list.ImmutableList
+import pro.artkart.kmagic.tree.Tree.Companion.balance
 import kotlin.math.max
 
 sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
@@ -137,7 +138,7 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
         }
     }
 
-    fun toListInOrderRight(): ImmutableList<@UnsafeVariance T> = unBalanceRight(ImmutableList(), this)
+    fun toListInOrderRight(): ImmutableList<@UnsafeVariance T> = unBalanceLeft(ImmutableList(), this)
 
     operator fun plus(other: Tree<@UnsafeVariance T>): Tree<T> = when (this) {
         Empty -> other
@@ -173,6 +174,23 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
 
     companion object {
 
+        fun <T> unfold(seed: T, f: (T) -> Resolution<T>): T {
+            tailrec fun unfold(current: Pair<Resolution<T>, Resolution<T>>): Pair<Resolution<T>, Resolution<T>> {
+                val next = current.second.flatMap { f(it) }
+                return when (next) {
+                    is Resolution.Success -> unfold(Pair(current.second, next))
+                    else -> current
+                }
+            }
+            return Resolution(seed).let { unfold(Pair(it, it)).second.getOrElse(seed) }
+        }
+
+        fun <T : Comparable<T>> balance(tree: Tree<T>): Tree<T> = when (tree) {
+            Empty -> Empty
+            is Node -> tree.toListInOrderRight()
+                .toTree()
+        }
+
         operator fun <T : Comparable<T>> invoke(): Tree<T> = Empty
 
         operator fun <T : Comparable<T>> invoke(vararg items: T): Tree<T> =
@@ -202,14 +220,28 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
                 left.max().map { it < value }
             }.getOrElse(false)
 
-        private tailrec fun <T : Comparable<T>> unBalanceRight(acc: ImmutableList<T>, tree: Tree<T>): ImmutableList<T> =
+        private tailrec fun <T : Comparable<T>> unBalanceLeft(acc: ImmutableList<T>, tree: Tree<T>): ImmutableList<T> =
             when (tree) {
                 Empty -> acc
                 is Node -> when (tree.right) {
-                    Empty -> unBalanceRight(acc.cons(tree.value), tree.left)
-                    is Node -> unBalanceRight(acc, tree.rotateLeft())
+                    Empty -> unBalanceLeft(acc.cons(tree.value), tree.left)
+                    is Node -> unBalanceLeft(acc, tree.rotateLeft())
                 }
             }
+
+        private tailrec fun <T : Comparable<T>> unBalanceRight(acc: ImmutableList<T>, tree: Tree<T>): ImmutableList<T> =
+            when (tree) {
+                Empty -> acc
+                is Node -> when (tree.left) {
+                    Empty -> unBalanceRight(acc.cons(tree.value), tree.right)
+                    is Node -> unBalanceRight(acc, tree.rotateRight())
+                }
+            }
+
+        private fun log2nlz(n: Int): Int = when (n) {
+            0 -> 0
+            else -> 31 - Integer.numberOfLeadingZeros(n)
+        }
     }
 }
 
@@ -236,4 +268,12 @@ fun Tree<Int>.maxPathSum(): Int {
     }
     maxPath()
     return sum
+}
+
+fun main() {
+
+    Tree(4, 2, 1, 3, 6, 5, 7).let {
+        balance(it)
+            .run { println(this) }
+    }
 }
