@@ -144,6 +144,10 @@ class TreeTest : StringSpec({
         Tree(1, 2, 3, 4, 5, 6, 7).balance() shouldBe Tree(4, 2, 1, 3, 6, 5, 7)
     }
 
+    "balance() should return Tree(4, 2, 1, 3, 6, 5)" {
+        Tree(1, 2, 3, 4, 5, 6).balance() shouldBe Tree(3, 2, 1, 5, 4, 6)
+    }
+
     "toPseudoGraphicString() should return pseudo-graphic tree representation" {
         foldTree.toPseudoGraphicString() shouldBe """
             4

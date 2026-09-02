@@ -28,7 +28,9 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
         override val size: Int = 1 + left.size + right.size
         override val height: Int = 1 + max(left.height, right.height)
         override fun isEmpty(): Boolean = false
-        override fun toString(): String = "(Node $left $value $right)"
+
+        //        override fun toString(): String = "(Node $left $value $right)"
+        override fun toString(): String = "\n${toPseudoGraphicString()}"
     }
 
     fun contains(item: @UnsafeVariance T): Boolean = when (this) {
@@ -185,7 +187,9 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
         Empty -> Node(Empty, element, Empty)
 
         is Node -> when {
-            element < value -> Node(left + element, value, right)
+            element < value ->
+                Node(left + element, value, right)
+
             element > value -> Node(left, value, right + element)
             else -> Node(left, element, right)
         }
@@ -193,37 +197,19 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
 
     companion object {
 
-        fun <T : Comparable<T>> balance(tree: Tree<T>): Tree<T> = unfold(tree) {
-            when (it) {
-                Empty -> Resolution.Empty
-                is Node -> when {
-                    it.size % 2 == 0 && abs(it.left.size - it.right.size) <= 1
-                            || it.size % 2 != 0 && it.left.size == it.right.size
-                        -> Resolution.Empty
-
-                    else -> when {
-                        it.left.size > it.right.size -> Resolution(it.rotateRight())
-                        it.left.size < it.right.size -> Resolution(it.rotateLeft())
-                        else -> Resolution.Empty
-                    }
-                }
-            }
-        }
-
-        private fun <T : Comparable<T>> balanceV2(tree: Tree<T>): Tree<T> = when (tree) {
+        private fun <T : Comparable<T>> balance(tree: Tree<T>): Tree<T> = when (tree) {
             Empty -> tree
             is Node -> when {
-                tree.size % 2 == 0 && abs(tree.left.size - tree.right.size) <= 1
-                        || tree.size % 2 != 0 && tree.left.size == tree.right.size
-                    -> Node(balanceV2(tree.left), tree.value, balanceV2(tree.right))
+                isBalanced(tree) -> Node(balance(tree.left), tree.value, balance(tree.right))
 
                 else -> if (tree.left.size > tree.right.size)
-                    balanceV2(tree.rotateRight())
+                    balance(tree.rotateRight())
                 else
-                    balanceV2(tree.rotateLeft())
+                    balance(tree.rotateLeft())
             }
         }
 
+        @Suppress("unused")
         fun <T> unfold(seed: T, f: (T) -> Resolution<T>): T {
             tailrec fun unfold(current: Pair<Resolution<T>, Resolution<T>>): Pair<Resolution<T>, Resolution<T>> {
                 val next = current.second.flatMap { f(it) }
@@ -282,9 +268,21 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
                 }
             }
 
+        @Suppress("unused")
         private fun log2nlz(n: Int): Int = when (n) {
             0 -> 0
             else -> 31 - Integer.numberOfLeadingZeros(n)
+        }
+
+        private fun <T : Comparable<T>> isBalanced(tree: Tree<T>): Boolean = when (tree) {
+            Empty -> true
+            is Node -> abs(tree.left.height - tree.right.height).let { diff ->
+                when {
+                    tree.size % 2 == 0 -> diff == 1
+                    tree.size % 2 == 1 -> diff == 0
+                    else -> false
+                }
+            }
         }
     }
 }
@@ -312,11 +310,4 @@ fun Tree<Int>.maxPathSum(): Int {
     }
     maxPath()
     return sum
-}
-
-fun main() {
-
-    println(
-        Tree(1, 2, 3).toPseudoGraphicString()
-    )
 }
