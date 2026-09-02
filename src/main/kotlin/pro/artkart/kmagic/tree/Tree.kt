@@ -2,7 +2,7 @@ package pro.artkart.kmagic.tree
 
 import pro.artkart.kmagic.exception.Resolution
 import pro.artkart.kmagic.list.ImmutableList
-import pro.artkart.kmagic.tree.Tree.Companion.balance
+import kotlin.math.abs
 import kotlin.math.max
 
 sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
@@ -111,6 +111,23 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
         }
     }
 
+    fun toPseudoGraphicString(): String = when (this) {
+        Empty -> "Empty"
+        is Node -> "$value\n" + childrenToPseudoGraphicString("")
+    }
+
+    private fun childrenToPseudoGraphicString(prefix: String): String = when (this) {
+        Empty -> ""
+        is Node -> listOf(left, right).filter { !it.isEmpty() }.let { children ->
+            children.mapIndexed { index, child ->
+                val isLast = index == children.lastIndex
+                val connector = if (isLast) "└── " else "├── "
+                val childPrefix = prefix + if (isLast) "    " else "│   "
+                "$prefix$connector${(child as Node).value}\n" + child.childrenToPseudoGraphicString(childPrefix)
+            }.joinToString("")
+        }
+    }
+
     fun <R : Comparable<R>> map(transform: (T) -> R): Tree<R> = when (this) {
         Empty -> Empty
         is Node -> foldInOrder(invoke()) { left ->
@@ -139,6 +156,8 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
     }
 
     fun toListInOrderRight(): ImmutableList<@UnsafeVariance T> = unBalanceLeft(ImmutableList(), this)
+
+    fun balance(): Tree<T> = balance(toListInOrderRight().toTree())
 
     operator fun plus(other: Tree<@UnsafeVariance T>): Tree<T> = when (this) {
         Empty -> other
@@ -174,6 +193,37 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
 
     companion object {
 
+        fun <T : Comparable<T>> balance(tree: Tree<T>): Tree<T> = unfold(tree) {
+            when (it) {
+                Empty -> Resolution.Empty
+                is Node -> when {
+                    it.size % 2 == 0 && abs(it.left.size - it.right.size) <= 1
+                            || it.size % 2 != 0 && it.left.size == it.right.size
+                        -> Resolution.Empty
+
+                    else -> when {
+                        it.left.size > it.right.size -> Resolution(it.rotateRight())
+                        it.left.size < it.right.size -> Resolution(it.rotateLeft())
+                        else -> Resolution.Empty
+                    }
+                }
+            }
+        }
+
+        private fun <T : Comparable<T>> balanceV2(tree: Tree<T>): Tree<T> = when (tree) {
+            Empty -> tree
+            is Node -> when {
+                tree.size % 2 == 0 && abs(tree.left.size - tree.right.size) <= 1
+                        || tree.size % 2 != 0 && tree.left.size == tree.right.size
+                    -> Node(balanceV2(tree.left), tree.value, balanceV2(tree.right))
+
+                else -> if (tree.left.size > tree.right.size)
+                    balanceV2(tree.rotateRight())
+                else
+                    balanceV2(tree.rotateLeft())
+            }
+        }
+
         fun <T> unfold(seed: T, f: (T) -> Resolution<T>): T {
             tailrec fun unfold(current: Pair<Resolution<T>, Resolution<T>>): Pair<Resolution<T>, Resolution<T>> {
                 val next = current.second.flatMap { f(it) }
@@ -183,12 +233,6 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
                 }
             }
             return Resolution(seed).let { unfold(Pair(it, it)).second.getOrElse(seed) }
-        }
-
-        fun <T : Comparable<T>> balance(tree: Tree<T>): Tree<T> = when (tree) {
-            Empty -> Empty
-            is Node -> tree.toListInOrderRight()
-                .toTree()
         }
 
         operator fun <T : Comparable<T>> invoke(): Tree<T> = Empty
@@ -272,8 +316,7 @@ fun Tree<Int>.maxPathSum(): Int {
 
 fun main() {
 
-    Tree(4, 2, 1, 3, 6, 5, 7).let {
-        balance(it)
-            .run { println(this) }
-    }
+    println(
+        Tree(1, 2, 3).toPseudoGraphicString()
+    )
 }

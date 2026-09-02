@@ -139,4 +139,24 @@ class TreeTest : StringSpec({
     "toListInOrderRight() should return ImmutableList(1, 2, 3, 4, 5, 6, 7)" {
         foldTree.toListInOrderRight() shouldBe ImmutableList(1, 2, 3, 4, 5, 6, 7)
     }
+
+    "balance() should return Tree(4, 2, 1, 3, 6, 5, 7)" {
+        Tree(1, 2, 3, 4, 5, 6, 7).balance() shouldBe Tree(4, 2, 1, 3, 6, 5, 7)
+    }
+
+    "toPseudoGraphicString() should return pseudo-graphic tree representation" {
+        foldTree.toPseudoGraphicString() shouldBe """
+            4
+            ├── 2
+            │   ├── 1
+            │   └── 3
+            └── 6
+                ├── 5
+                └── 7
+        """.trimIndent() + "\n"
+    }
+
+    "Tree<Int>().toPseudoGraphicString() should return Empty" {
+        Tree<Int>().toPseudoGraphicString() shouldBe "Empty"
+    }
 })
