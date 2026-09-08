@@ -5,7 +5,7 @@ import pro.artkart.kmagic.list.ImmutableList
 import kotlin.math.abs
 import kotlin.math.max
 
-sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
+sealed class BST<out T : Comparable<@UnsafeVariance T>> {
 
     abstract val size: Int
 
@@ -13,7 +13,7 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
 
     abstract fun isEmpty(): Boolean
 
-    internal object Empty : Tree<Nothing>() {
+    internal object Empty : BST<Nothing>() {
         override val size: Int = 0
         override val height: Int = -1
         override fun isEmpty(): Boolean = true
@@ -21,10 +21,10 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
     }
 
     internal data class Node<out T : Comparable<@UnsafeVariance T>>(
-        val left: Tree<T>,
+        val left: BST<T>,
         val value: T,
-        val right: Tree<T>
-    ) : Tree<T>() {
+        val right: BST<T>
+    ) : BST<T>() {
         override val size: Int = 1 + left.size + right.size
         override val height: Int = 1 + max(left.height, right.height)
         override fun isEmpty(): Boolean = false
@@ -52,7 +52,7 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
         is Node -> left.min().orElse { Resolution(value) }
     }
 
-    fun remove(item: @UnsafeVariance T): Tree<T> = when (this) {
+    fun remove(item: @UnsafeVariance T): BST<T> = when (this) {
         Empty -> this
         is Node -> when {
             item < value -> Node(left.remove(item), value, right)
@@ -130,7 +130,7 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
         }
     }
 
-    fun <R : Comparable<R>> map(transform: (T) -> R): Tree<R> = when (this) {
+    fun <R : Comparable<R>> map(transform: (T) -> R): BST<R> = when (this) {
         Empty -> Empty
         is Node -> foldInOrder(invoke()) { left ->
             { item ->
@@ -141,7 +141,7 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
         }
     }
 
-    fun rotateRight(): Tree<T> = when (this) {
+    fun rotateRight(): BST<T> = when (this) {
         Empty -> Empty
         is Node -> when (left) {
             Empty -> this
@@ -149,7 +149,7 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
         }
     }
 
-    fun rotateLeft(): Tree<T> = when (this) {
+    fun rotateLeft(): BST<T> = when (this) {
         Empty -> Empty
         is Node -> when (right) {
             Empty -> this
@@ -159,9 +159,9 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
 
     fun toListInOrderRight(): ImmutableList<@UnsafeVariance T> = unBalanceLeft(ImmutableList(), this)
 
-    fun balance(): Tree<T> = balance(toListInOrderRight().toTree())
+    fun balance(): BST<T> = balance(toListInOrderRight().toBST())
 
-    operator fun plus(other: Tree<@UnsafeVariance T>): Tree<T> = when (this) {
+    operator fun plus(other: BST<@UnsafeVariance T>): BST<T> = when (this) {
         Empty -> other
         is Node -> when (other) {
             Empty -> this
@@ -183,7 +183,7 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
         }
     }
 
-    operator fun plus(element: @UnsafeVariance T): Tree<T> = when (this) {
+    operator fun plus(element: @UnsafeVariance T): BST<T> = when (this) {
         Empty -> Node(Empty, element, Empty)
 
         is Node -> when {
@@ -197,15 +197,15 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
 
     companion object {
 
-        private fun <T : Comparable<T>> balance(tree: Tree<T>): Tree<T> = when (tree) {
-            Empty -> tree
+        private fun <T : Comparable<T>> balance(bst: BST<T>): BST<T> = when (bst) {
+            Empty -> bst
             is Node -> when {
-                isBalanced(tree) -> Node(balance(tree.left), tree.value, balance(tree.right))
+                isBalanced(bst) -> Node(balance(bst.left), bst.value, balance(bst.right))
 
-                else -> if (tree.left.size > tree.right.size)
-                    balance(tree.rotateRight())
+                else -> if (bst.left.size > bst.right.size)
+                    balance(bst.rotateRight())
                 else
-                    balance(tree.rotateLeft())
+                    balance(bst.rotateLeft())
             }
         }
 
@@ -221,23 +221,23 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
             return Resolution(seed).let { unfold(Pair(it, it)).second.getOrElse(seed) }
         }
 
-        operator fun <T : Comparable<T>> invoke(): Tree<T> = Empty
+        operator fun <T : Comparable<T>> invoke(): BST<T> = Empty
 
-        operator fun <T : Comparable<T>> invoke(vararg items: T): Tree<T> =
+        operator fun <T : Comparable<T>> invoke(vararg items: T): BST<T> =
             items.fold(invoke()) { acc, item ->
                 acc + item
             }
 
-        operator fun <T : Comparable<T>> invoke(list: ImmutableList<T>): Tree<T> =
+        operator fun <T : Comparable<T>> invoke(list: ImmutableList<T>): BST<T> =
             list.foldLeft(invoke()) { acc -> { item -> acc + item } }
 
-        operator fun <T : Comparable<T>> invoke(left: Tree<T>, value: T, right: Tree<T>): Tree<T> = when {
+        operator fun <T : Comparable<T>> invoke(left: BST<T>, value: T, right: BST<T>): BST<T> = when {
             ordered(left, value, right) -> Node(left, value, right)
             ordered(right, value, left) -> Node(right, value, left)
-            else -> Tree(value) + left + right
+            else -> BST(value) + left + right
         }
 
-        private fun <T : Comparable<T>> ordered(left: Tree<T>, value: T, right: Tree<T>) =
+        private fun <T : Comparable<T>> ordered(left: BST<T>, value: T, right: BST<T>) =
             left.max().flatMap { lMax ->
                 right.min().map { rMin ->
                     lMax < value && rMin > value
@@ -250,21 +250,21 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
                 left.max().map { it < value }
             }.getOrElse(false)
 
-        private tailrec fun <T : Comparable<T>> unBalanceLeft(acc: ImmutableList<T>, tree: Tree<T>): ImmutableList<T> =
-            when (tree) {
+        private tailrec fun <T : Comparable<T>> unBalanceLeft(acc: ImmutableList<T>, bst: BST<T>): ImmutableList<T> =
+            when (bst) {
                 Empty -> acc
-                is Node -> when (tree.right) {
-                    Empty -> unBalanceLeft(acc.cons(tree.value), tree.left)
-                    is Node -> unBalanceLeft(acc, tree.rotateLeft())
+                is Node -> when (bst.right) {
+                    Empty -> unBalanceLeft(acc.cons(bst.value), bst.left)
+                    is Node -> unBalanceLeft(acc, bst.rotateLeft())
                 }
             }
 
-        private tailrec fun <T : Comparable<T>> unBalanceRight(acc: ImmutableList<T>, tree: Tree<T>): ImmutableList<T> =
-            when (tree) {
+        private tailrec fun <T : Comparable<T>> unBalanceRight(acc: ImmutableList<T>, bst: BST<T>): ImmutableList<T> =
+            when (bst) {
                 Empty -> acc
-                is Node -> when (tree.left) {
-                    Empty -> unBalanceRight(acc.cons(tree.value), tree.right)
-                    is Node -> unBalanceRight(acc, tree.rotateRight())
+                is Node -> when (bst.left) {
+                    Empty -> unBalanceRight(acc.cons(bst.value), bst.right)
+                    is Node -> unBalanceRight(acc, bst.rotateRight())
                 }
             }
 
@@ -274,12 +274,12 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
             else -> 31 - Integer.numberOfLeadingZeros(n)
         }
 
-        private fun <T : Comparable<T>> isBalanced(tree: Tree<T>): Boolean = when (tree) {
+        private fun <T : Comparable<T>> isBalanced(bst: BST<T>): Boolean = when (bst) {
             Empty -> true
-            is Node -> abs(tree.left.height - tree.right.height).let { diff ->
+            is Node -> abs(bst.left.height - bst.right.height).let { diff ->
                 when {
-                    tree.size % 2 == 0 -> diff == 1
-                    tree.size % 2 == 1 -> diff == 0
+                    bst.size % 2 == 0 -> diff == 1
+                    bst.size % 2 == 1 -> diff == 0
                     else -> false
                 }
             }
@@ -287,21 +287,21 @@ sealed class Tree<out T : Comparable<@UnsafeVariance T>> {
     }
 }
 
-fun <T : Comparable<T>> ImmutableList<T>.toTree(): Tree<T> =
-    foldLeft(Tree()) { acc ->
+fun <T : Comparable<T>> ImmutableList<T>.toBST(): BST<T> =
+    foldLeft(BST()) { acc ->
         { item -> acc + item }
     }
 
-fun Tree<Int>.maxSum(): Int = when (this) {
-    Tree.Empty -> 0
-    is Tree.Node -> value + max(left.maxSum(), right.maxSum())
+fun BST<Int>.maxSum(): Int = when (this) {
+    BST.Empty -> 0
+    is BST.Node -> value + max(left.maxSum(), right.maxSum())
 }
 
-fun Tree<Int>.maxPathSum(): Int {
+fun BST<Int>.maxPathSum(): Int {
     var sum = 0
-    fun Tree<Int>.maxPath(): Int = when (this) {
-        Tree.Empty -> 0
-        is Tree.Node -> {
+    fun BST<Int>.maxPath(): Int = when (this) {
+        BST.Empty -> 0
+        is BST.Node -> {
             val lSum = max(left.maxPath(), 0)
             val rSum = max(right.maxPath(), 0)
             sum = max(sum, lSum + rSum + value)
