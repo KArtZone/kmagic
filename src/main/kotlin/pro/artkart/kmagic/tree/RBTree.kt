@@ -22,20 +22,25 @@ sealed class RBTree<out T : Comparable<@UnsafeVariance T>> {
         value: @UnsafeVariance T,
         right: RBTree<@UnsafeVariance T>
     ): RBTree<T> = when (color) {
+        // balance B (T R (T R a x b) y c) z d = T R (T B a x b) y (T B c z d)
         B if left.isNodeR && left.left.isNodeR ->
             Node(R, left.left.blacken(), left.value, Node(B, left.right, value, right))
+        // balance B (T R a x (T R b y c)) z d = T R (T B a x b) y (T B c z d)
         B if left.isNodeR && left.right.isNodeR ->
             Node(
                 R, Node(B, left.left, left.value, left.right.left), left.right.value,
                 Node(B, left.right.right, value, right)
             )
+        // balance B a x (T R (T R b y c) z d) = T R (T B a x b) y (T B c z d)
         B if right.isNodeR && right.left.isNodeR ->
             Node(
                 R, Node(B, left, value, right.left.left), right.left.value,
                 Node(B, right.left.right, right.value, right.right)
             )
+        // balance B a x (T R b y (T R c z d)) = T R (T B a x b) y (T B c z d)
         B if right.isNodeR && right.right.isNodeR ->
             Node(R, Node(B, left, value, right.left), right.value, right.right.blacken())
+        // balance color a x b = T color a x b
         else -> Node(color, left, value, right)
     }
 
