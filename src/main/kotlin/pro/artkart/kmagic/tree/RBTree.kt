@@ -21,25 +21,21 @@ sealed class RBTree<out T : Comparable<@UnsafeVariance T>> {
         left: RBTree<@UnsafeVariance T>,
         value: @UnsafeVariance T,
         right: RBTree<@UnsafeVariance T>
-    ): RBTree<T> = when {
-        color == B && left.isNodeR && left.left.isNodeR ->
+    ): RBTree<T> = when (color) {
+        B if left.isNodeR && left.left.isNodeR ->
             Node(R, left.left.blacken(), left.value, Node(B, left.right, value, right))
-
-        color == B && left.isNodeR && left.right.isNodeR ->
+        B if left.isNodeR && left.right.isNodeR ->
             Node(
                 R, Node(B, left.left, left.value, left.right.left), left.right.value,
                 Node(B, left.right.right, value, right)
             )
-
-        color == B && right.isNodeR && right.left.isNodeR ->
+        B if right.isNodeR && right.left.isNodeR ->
             Node(
                 R, Node(B, left, value, right.left.left), right.left.value,
                 Node(B, right.left.right, right.value, right.right)
             )
-
-        color == B && right.isNodeR && right.right.isNodeR ->
+        B if right.isNodeR && right.right.isNodeR ->
             Node(R, Node(B, left, value, right.left), right.value, right.right.blacken())
-
         else -> Node(color, left, value, right)
     }
 
