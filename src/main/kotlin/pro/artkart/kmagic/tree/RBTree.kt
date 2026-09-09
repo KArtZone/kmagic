@@ -1,5 +1,6 @@
 package pro.artkart.kmagic.tree
 
+import pro.artkart.kmagic.exception.Resolution
 import pro.artkart.kmagic.tree.Color.B
 import pro.artkart.kmagic.tree.Color.R
 import kotlin.math.max
@@ -13,8 +14,11 @@ sealed class RBTree<out T : Comparable<@UnsafeVariance T>> {
     abstract val left: RBTree<T>
     abstract val right: RBTree<T>
     abstract val value: T
+    abstract fun isEmpty(): Boolean
     abstract fun add(newVal: @UnsafeVariance T): RBTree<T>
     abstract fun blacken(): RBTree<T>
+    abstract fun contains(item: @UnsafeVariance T): Boolean
+    abstract operator fun get(item: @UnsafeVariance T): Resolution<T>
 
     protected fun balance(
         color: Color,
@@ -53,9 +57,12 @@ sealed class RBTree<out T : Comparable<@UnsafeVariance T>> {
         override val left: RBTree<Nothing> by lazy { throw IllegalStateException("left called on Empty") }
         override val right: RBTree<Nothing> by lazy { throw IllegalStateException("right called on Empty") }
         override val value: Nothing by lazy { throw IllegalStateException("value called on Empty") }
+        override fun isEmpty(): Boolean = true
         override fun add(newVal: @UnsafeVariance T): RBTree<T> = Node(R, E, newVal, E)
         override fun blacken(): RBTree<T> = E
+        override fun contains(item: @UnsafeVariance T): Boolean = false
         override fun toString(): String = "E"
+        override fun get(item: @UnsafeVariance T): Resolution<T> = Resolution()
     }
 
     internal object E : Empty<Nothing>()
@@ -70,6 +77,7 @@ sealed class RBTree<out T : Comparable<@UnsafeVariance T>> {
         override val height: Int = 1 + max(left.height, right.height)
         override val isNodeR: Boolean = color == R
         override val isNodeB: Boolean = color == B
+        override fun isEmpty(): Boolean = false
         override fun add(newVal: @UnsafeVariance T): RBTree<T> = when {
             newVal < value -> balance(color, left.add(newVal), value, right)
             newVal > value -> balance(color, left, value, right.add(newVal))
@@ -77,7 +85,18 @@ sealed class RBTree<out T : Comparable<@UnsafeVariance T>> {
         }
 
         override fun blacken(): RBTree<T> = Node(B, left, value, right)
+        override fun contains(item: @UnsafeVariance T): Boolean = when {
+            item < value -> left.contains(item)
+            item > value -> right.contains(item)
+            else -> true
+        }
+
         override fun toString(): String = "(Node $color $left $value $right)"
+        override fun get(item: @UnsafeVariance T): Resolution<T> = when {
+            item < value -> left[item]
+            item > value -> right[item]
+            else -> Resolution(value)
+        }
     }
 
     operator fun plus(newVal: @UnsafeVariance T): RBTree<T> = add(newVal).blacken()
