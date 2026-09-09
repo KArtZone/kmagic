@@ -58,17 +58,13 @@ sealed class BST<out T : Comparable<@UnsafeVariance T>> {
         Empty -> this
         is Node -> when {
             item < value -> {
-                val newLeft = left.remove(item)
-                val node = Node(newLeft, value, right)
-                val diff = newLeft.height - right.height
-                if (autoBalanced) balance(diff, node) else node
+                val node = Node(left.remove(item), value, right)
+                if (autoBalanced) balance(node) else node
             }
 
             item > value -> {
-                val newRight = right.remove(item)
-                val node = Node(left, value, newRight)
-                val diff = left.height - newRight.height
-                if (autoBalanced) balance(diff, node) else node
+                val node = Node(left, value, right.remove(item))
+                if (autoBalanced) balance(node) else node
             }
 
             else -> left + right
@@ -180,17 +176,30 @@ sealed class BST<out T : Comparable<@UnsafeVariance T>> {
         is Node -> when (other) {
             Empty -> this
             is Node -> when {
-                value < other.value -> Node(
-                    left, value, right + Node(
-                        Empty, other.value, other.right
-                    )
-                ) + other.left
+                value < other.value -> {
+                    val node = Node(
+                        left, value, right + Node(
+                            Empty, other.value, other.right
+                        )
+                    ) + other.left
+                    when (node) {
+                        is Node if (autoBalanced) -> balance(node)
 
-                value > other.value -> Node(
-                    left + Node(
-                        other.left, other.value, Empty
-                    ), value, right
-                ) + other.right
+                        else -> node
+                    }
+                }
+
+                value > other.value -> {
+                    val node = Node(
+                        left + Node(
+                            other.left, other.value, Empty
+                        ), value, right
+                    ) + other.right
+                    when (node) {
+                        is Node if (autoBalanced) -> balance(node)
+                        else -> node
+                    }
+                }
 
                 else -> Node(left + other.left, value, right + other.right)
             }
@@ -202,43 +211,42 @@ sealed class BST<out T : Comparable<@UnsafeVariance T>> {
 
         is Node -> when {
             element < value -> {
-                val newLeft = left + element
-                val node = Node(newLeft, value, right)
-                val diff = newLeft.height - right.height
-                if (autoBalanced) balance(diff, node) else node
+                val node = Node(left + element, value, right)
+                if (autoBalanced) balance(node) else node
             }
 
             element > value -> {
-                val newRight = right + element
-                val node = Node(left, value, newRight)
-                val diff = left.height - newRight.height
-                if (autoBalanced) balance(diff, node) else node
+                val node = Node(left, value, right + element)
+                if (autoBalanced) balance(node) else node
             }
 
             else -> Node(left, element, right)
         }
     }
 
-    private fun balance(diff: Int, node: Node<T>): BST<T> = when {
-        abs(diff) > 1 -> when {
-            diff < 0 -> when (node.right) {
-                is Node if (node.right.left.height > node.right.right.height) ->
-                    Node(node.left, node.value, node.right.rotateRight())
+    private fun balance(node: Node<T>): BST<T> {
+        val diff = node.left.height - node.right.height
+        return when {
+            abs(diff) > 1 -> when {
+                diff < 0 -> when (node.right) {
+                    is Node if (node.right.left.height > node.right.right.height) ->
+                        Node(node.left, node.value, node.right.rotateRight())
+
+                    else -> node
+                }.rotateLeft()
+
+                diff > 0 -> when (node.left) {
+                    is Node if (node.left.left.height < node.left.right.height) ->
+                        Node(node.left.rotateLeft(), node.value, node.right)
+
+                    else -> node
+                }.rotateRight()
 
                 else -> node
-            }.rotateLeft()
-
-            diff > 0 -> when (node.left) {
-                is Node if (node.left.left.height < node.left.right.height) ->
-                    Node(node.left.rotateLeft(), node.value, node.right)
-
-                else -> node
-            }.rotateRight()
+            }
 
             else -> node
         }
-
-        else -> node
     }
 
     companion object {
