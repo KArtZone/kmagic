@@ -1,6 +1,8 @@
 package pro.artkart.kmagic.tree
 
 import pro.artkart.kmagic.exception.Resolution
+import pro.artkart.kmagic.list.ImmutableList
+import pro.artkart.kmagic.utils.sequence
 
 class Map<out K : Comparable<@UnsafeVariance K>, V>(
     val delegate: Tree<MapEntry<@UnsafeVariance K, V>> = Tree()
@@ -10,16 +12,40 @@ class Map<out K : Comparable<@UnsafeVariance K>, V>(
 
     fun size(): Int = delegate.size
 
+    fun <R> foldLeft(identity: R, f: (R) -> (MapEntry<@UnsafeVariance K, V>) -> R, m: (R) -> (R) -> R): R =
+        delegate.foldLeft(identity, { acc ->
+            { item ->
+                f(acc)(item)
+            }
+        }, m)
+
+    fun <R> foldInOrder(identity: R, f: (R) -> (MapEntry<@UnsafeVariance K, V>) -> (R) -> R): R =
+        delegate.foldInOrder(identity, f)
+
+    fun values(): ImmutableList<V> = sequence(
+        foldInOrder(ImmutableList<Resolution<V>>()) { left ->
+            { value ->
+                { right ->
+                    left.concat(right.cons(value.value))
+                }
+            }
+        }).getOrElse { ImmutableList() }
+
+    override fun toString(): String = delegate.toString()
+
     operator fun plus(entry: Pair<@UnsafeVariance K, V>): Map<K, V> = Map(delegate + MapEntry(entry))
+
+    operator fun plus(entry: MapEntry<@UnsafeVariance K, V>): Map<K, V> = Map(delegate + entry)
 
     operator fun minus(key: @UnsafeVariance K): Map<K, V> = Map(delegate - MapEntry(key))
 
     operator fun contains(key: @UnsafeVariance K): Boolean = delegate.contains(MapEntry(key))
 
-    operator fun get(key: @UnsafeVariance K): Resolution<MapEntry<@UnsafeVariance K, V>> = delegate[MapEntry(key)]
+    operator fun get(key: @UnsafeVariance K): Resolution<MapEntry<@UnsafeVariance K, V>> =
+        delegate[MapEntry(key)]
 
     companion object {
-        operator fun invoke(): Map<Nothing, Nothing> = Map()
+        operator fun <K : Comparable<K>, V> invoke(): Map<K, V> = Map()
     }
 }
 
