@@ -3,16 +3,16 @@ package pro.artkart.kmagic.tree
 import pro.artkart.kmagic.exception.Resolution
 
 class Map<out K : Comparable<@UnsafeVariance K>, V>(
-    val delegate: RBTree<MapEntry<@UnsafeVariance K, V>> = RBTree()
+    val delegate: Tree<MapEntry<@UnsafeVariance K, V>> = Tree()
 ) {
 
-    fun isEmpty(): Boolean = delegate.isEmpty()
+    fun isEmpty(): Boolean = delegate.isEmpty
 
     fun size(): Int = delegate.size
 
     operator fun plus(entry: Pair<@UnsafeVariance K, V>): Map<K, V> = Map(delegate + MapEntry(entry))
 
-    operator fun minus(key: @UnsafeVariance K): Boolean = TODO()
+    operator fun minus(key: @UnsafeVariance K): Map<K, V> = Map(delegate - MapEntry(key))
 
     operator fun contains(key: @UnsafeVariance K): Boolean = delegate.contains(MapEntry(key))
 
