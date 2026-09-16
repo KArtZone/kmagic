@@ -14,6 +14,8 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation(kotlin("stdlib"))
     implementation(libs.coroutines.core)
+    implementation(libs.logging)
+    implementation(libs.logback)
 
     testImplementation(libs.kotest.core)
     testImplementation(libs.kotest.assertions)
