@@ -1,6 +1,6 @@
 [versions]
 kotest = "6.2.3"
-coroutines = "1.10.2"
+coroutines = "1.11.0"
 logging = "8.0.4"
 logback = "1.6.3"
 
@@ -11,3 +11,4 @@ logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
 kotest-core = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-assertions = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }

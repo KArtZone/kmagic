@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.2.21"
+    kotlin("jvm") version "2.4.20"
     id("io.kotest") version "6.2.3"
 }
 
@@ -19,6 +19,7 @@ dependencies {
 
     testImplementation(libs.kotest.core)
     testImplementation(libs.kotest.assertions)
+    testImplementation(libs.coroutines.test)
 }
 
 kotlin {
