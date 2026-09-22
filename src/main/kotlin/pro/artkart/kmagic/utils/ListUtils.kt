@@ -52,6 +52,20 @@ fun <T> sequence1(list: ImmutableList<Option<T>>): Option<ImmutableList<T>> =
         }
     }
 
+fun <T> sequence2(list: ImmutableList<Option<T>>): Option<ImmutableList<T>> {
+    tailrec fun sequence2(acc: Option<ImmutableList<T>>, list: ImmutableList<Option<T>>): Option<ImmutableList<T>> =
+        when (list) {
+            ImmutableList.Nil -> acc
+            is ImmutableList.Cons -> sequence2(
+                acc.flatMap { l ->
+                    list.head.map { i -> l.cons(i) }
+                },
+                list.tail
+            )
+        }
+    return sequence2(Option(ImmutableList()), list.reverseV2())
+}
+
 fun <T, R> traverse(list: ImmutableList<T>, transform: (T) -> Option<R>): Option<ImmutableList<R>> =
     list.coFoldRight(Option(ImmutableList())) { item ->
         { acc ->

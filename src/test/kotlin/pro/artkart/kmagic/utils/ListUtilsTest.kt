@@ -47,6 +47,16 @@ class ListUtilsTest : StringSpec({
         ) shouldBe Option(ImmutableList(1, 2, 3))
     }
 
+    "sequence2 of ImmutableList of Options should return Option of ImmutableList" {
+        sequence2(
+            ImmutableList(
+                Option(1),
+                Option(2),
+                Option(3)
+            )
+        ) shouldBe Option(ImmutableList(1, 2, 3))
+    }
+
     "sequence of Options of Strings has return Option of List of Ints" {
         val parseWithRadix: (Int) -> (String) -> Option<Int> = { radix ->
             { string -> Option(Integer.parseInt(string, radix)) }
