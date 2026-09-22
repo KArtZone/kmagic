@@ -14,6 +14,12 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation(kotlin("stdlib"))
     implementation(libs.coroutines.core)
+    implementation(libs.arrow.core)
+    implementation(libs.arrow.fx.coroutines)
+    implementation(libs.arrow.fx.stm)
+    implementation(libs.arrow.resilience)
+
+
     implementation(libs.logging)
     implementation(libs.logback)
 
