@@ -1,0 +1,16 @@
+version: '3.3'
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: cat_hostel
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: abcd1234
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

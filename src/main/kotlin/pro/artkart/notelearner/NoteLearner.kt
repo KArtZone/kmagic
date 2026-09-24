@@ -10,7 +10,7 @@ import kotlin.time.Duration.Companion.seconds
 
 val log = KotlinLogging.logger { }
 
-val timeout = 5.seconds
+val timeout = 3.seconds
 const val countDown = 5
 val strings = (1..6).toList()
 val notes = ('A'..'G').toList()

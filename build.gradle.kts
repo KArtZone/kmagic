@@ -19,7 +19,6 @@ dependencies {
     implementation(libs.arrow.fx.stm)
     implementation(libs.arrow.resilience)
 
-
     implementation(libs.logging)
     implementation(libs.logback)
 
