@@ -47,3 +47,7 @@ dependencies {
     testImplementation(libs.coroutines.test)
     testImplementation(ktorLibs.server.testHost)
 }
+
+tasks.test {
+    useJUnitPlatform()
+}
