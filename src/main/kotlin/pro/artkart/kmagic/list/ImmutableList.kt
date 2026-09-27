@@ -8,6 +8,16 @@ import java.util.concurrent.ExecutorService
 
 sealed class ImmutableList<T> {
 
+    abstract val size: Int
+
+    abstract fun isEmpty(): Boolean
+
+    abstract fun headSafe(): Resolution<T>
+
+    abstract fun <R> foldToPair(identity: R, zero: R, f: (R) -> (T) -> R): Pair<R, ImmutableList<T>>
+
+    abstract fun forEach(effect: (T) -> Unit)
+
     internal object Nil : ImmutableList<Nothing>() {
 
         override val size: Int = 0
@@ -21,6 +31,8 @@ sealed class ImmutableList<T> {
             zero: R,
             f: (R) -> (Nothing) -> R
         ): Pair<R, ImmutableList<Nothing>> = Pair(identity, Nil)
+
+        override fun forEach(effect: (Nothing) -> Unit) {}
 
         override fun toString(): String = "[Nil]"
 
@@ -55,6 +67,19 @@ sealed class ImmutableList<T> {
             return foldToPair(identity, this)
         }
 
+        override fun forEach(effect: (T) -> Unit) {
+            tailrec fun forEach(list: ImmutableList<T>) {
+                when (list) {
+                    Nil -> {}
+                    is Cons -> {
+                        effect(list.head)
+                        forEach(list.tail)
+                    }
+                }
+            }
+            return forEach(this)
+        }
+
         override fun toString(): String = "[${toString("", this)}Nil]"
 
         private tailrec fun toString(acc: String, list: ImmutableList<T>): String =
@@ -63,14 +88,6 @@ sealed class ImmutableList<T> {
                 is Cons -> toString("$acc${list.head}, ", list.tail)
             }
     }
-
-    abstract val size: Int
-
-    abstract fun isEmpty(): Boolean
-
-    abstract fun headSafe(): Resolution<T>
-
-    abstract fun <R> foldToPair(identity: R, zero: R, f: (R) -> (T) -> R): Pair<R, ImmutableList<T>>
 
     fun lastSafe(): Resolution<T> = foldLeft(Resolution()) { { Resolution(it) } }
 
