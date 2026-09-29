@@ -163,6 +163,15 @@ sealed class Stream<out T> {
                 cons(Deferred { hd }, Deferred { unfold(current, f) })
             }.getOrElse(Empty)
 
+        fun <T> fill(n: Int, item: Deferred<T>): Stream<T> {
+            tailrec fun fill(acc: Stream<T>, index: Int, item: Deferred<T>): Stream<T> =
+                when {
+                    index <= 0 -> acc
+                    else -> fill(Cons(item, Deferred { acc }), index - 1, item)
+                }
+            return fill(Empty, n, item)
+        }
+
         operator fun <T> invoke(): Stream<T> = Empty
     }
 }
