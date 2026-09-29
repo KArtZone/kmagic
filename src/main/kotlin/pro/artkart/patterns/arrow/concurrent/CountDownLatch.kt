@@ -8,27 +8,28 @@ import kotlinx.coroutines.runBlocking
 import kotlin.random.Random.Default.nextInt
 import kotlin.time.Duration.Companion.milliseconds
 
+object CountDownLatch {
+    val log = KotlinLogging.logger { }
 
-val log = KotlinLogging.logger { }
-
-suspend fun worker(id: Long, latch: CountDownLatch) {
-    log.info { "Worker #$id started" }
-    delay((nextInt(1000) + 200).milliseconds)
-    log.info { "Worker #$id finished" }
-    latch.countDown()
-}
-
-fun main() = runBlocking {
-
-    val n = 5L
-    val countDownLatch = CountDownLatch(n)
-
-    (1..n).forEach {
-        launch {
-            worker(it, countDownLatch)
-        }
+    suspend fun worker(id: Long, latch: CountDownLatch) {
+        log.info { "Worker #$id started" }
+        delay((nextInt(1000) + 200).milliseconds)
+        log.info { "Worker #$id finished" }
+        latch.countDown()
     }
 
-    countDownLatch.await()
-    log.info { "All workers finished" }
+    fun test() = runBlocking {
+
+        val n = 5L
+        val countDownLatch = CountDownLatch(n)
+
+        (1..n).forEach {
+            launch {
+                worker(it, countDownLatch)
+            }
+        }
+
+        countDownLatch.await()
+        log.info { "All workers finished" }
+    }
 }

@@ -8,37 +8,39 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.milliseconds
 
+object Barrier {
 
-suspend fun fetchImageAsync() = coroutineScope {
-    async {
-        delay(200.milliseconds)
-        "image"
+    suspend fun fetchImageAsync() = coroutineScope {
+        async {
+            delay(200.milliseconds)
+            "image"
+        }
     }
-}
 
-suspend fun fetchRelationAsync() = coroutineScope {
-    async {
-        delay(300.milliseconds)
-        "relation"
+    suspend fun fetchRelationAsync() = coroutineScope {
+        async {
+            delay(300.milliseconds)
+            "relation"
+        }
     }
-}
 
-suspend fun fetchAudioAsync() = coroutineScope {
-    async {
-        delay(400.milliseconds)
-        "audio"
+    suspend fun fetchAudioAsync() = coroutineScope {
+        async {
+            delay(400.milliseconds)
+            "audio"
+        }
     }
-}
 
-fun main() = runBlocking {
+    fun test() = runBlocking {
 
-    val log = KotlinLogging.logger { }
+        val log = KotlinLogging.logger { }
 
-    parZip( // also parMap, parMapUnordered, parMarOrAccumulate etc.
-        { fetchImageAsync().await() },
-        { fetchRelationAsync().await() },
-        { fetchAudioAsync().await() }
-    ) { image, relation, audio ->
-        log.info { "image: $image, relation: $relation, audio: $audio" }
+        parZip( // also parMap, parMapUnordered, parMarOrAccumulate etc.
+            { fetchImageAsync().await() },
+            { fetchRelationAsync().await() },
+            { fetchAudioAsync().await() }
+        ) { image, relation, audio ->
+            log.info { "image: $image, relation: $relation, audio: $audio" }
+        }
     }
 }

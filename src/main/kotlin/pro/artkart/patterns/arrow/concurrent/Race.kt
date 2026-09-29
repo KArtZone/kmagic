@@ -7,22 +7,26 @@ import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
 
-
-suspend fun racer(name: String): String = name.also {
-    val time = Random.nextInt(1000) + 200
-    log.info { "$name: my time is $time" }
-    delay(time.milliseconds)
-}
-
-fun main() = runBlocking {
+object Race {
 
     val log = KotlinLogging.logger { }
 
-    val winner = raceN(
-        { racer("George Russell") },
-        { racer("Lewis Hamilton") },
-        { racer("Lando Norris") }
-    )
+    suspend fun racer(name: String): String = name.also {
+        val time = Random.nextInt(1000) + 200
+        log.info { "$name: my time is $time" }
+        delay(time.milliseconds)
+    }
 
-    log.info { winner }
+    fun test() = runBlocking {
+
+        val log = KotlinLogging.logger { }
+
+        val winner = raceN(
+            { racer("George Russell") },
+            { racer("Lewis Hamilton") },
+            { racer("Lando Norris") }
+        )
+
+        log.info { winner }
+    }
 }
