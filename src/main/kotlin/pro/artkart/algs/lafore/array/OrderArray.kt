@@ -1,6 +1,6 @@
 package pro.artkart.algs.lafore.array
 
-class OrderArray(capacity: Int) : AbstractArray(capacity) {
+class OrderArray(capacity: Int) : Array(capacity) {
 
     override fun minus(item: Int): Boolean = find(item)
         .let { index ->

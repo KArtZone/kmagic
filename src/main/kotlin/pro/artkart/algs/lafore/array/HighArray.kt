@@ -1,6 +1,6 @@
 package pro.artkart.algs.lafore.array
 
-class HighArray(capacity: Int) : AbstractArray(capacity) {
+class HighArray(capacity: Int) : Array(capacity) {
 
     override operator fun minus(item: Int): Boolean {
         (0 until next).forEach { index ->
