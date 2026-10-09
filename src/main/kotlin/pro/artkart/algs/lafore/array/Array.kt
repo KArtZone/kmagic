@@ -1,5 +1,10 @@
 package pro.artkart.algs.lafore.array
 
+import kotlin.collections.get
+import kotlin.collections.set
+import kotlin.compareTo
+import kotlin.text.set
+
 abstract class Array(
     protected val capacity: Int
 ) {

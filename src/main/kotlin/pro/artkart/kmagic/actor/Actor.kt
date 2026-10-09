@@ -2,6 +2,7 @@ package pro.artkart.kmagic.actor
 
 import pro.artkart.kmagic.common.Result
 
+
 interface Actor<T> {
 
     val context: ActorContext<T>
