@@ -1,5 +1,6 @@
 package pro.artkart.kmagic.actor
 
+import pro.artkart.kmagic.common.Heap
 import pro.artkart.kmagic.common.List
 import pro.artkart.kmagic.common.Result
 import pro.artkart.kmagic.common.sequence
@@ -7,34 +8,42 @@ import pro.artkart.kmagic.common.sequence
 class Manager(
     id: String,
     list: List<Int>,
-    private val client: Actor<Result<List<Int>>>,
+    private val client: Actor<Int>,
     private val workers: Int
-) : AbstractActor<Int>(id) {
+) : AbstractActor<Pair<Int, Int>>(id) {
 
     private val initial: List<Pair<Int, Int>>
-    private val workList: List<Int>
-    private val resultList: List<Int>
-    private val managerFunction: (Manager) -> (Behavior) -> (Int) -> Unit
+    private val workList: List<Pair<Int, Int>>
+    private val resultHeap: Heap<Pair<Int, Int>>
+    private val managerFunction: (Manager) -> (Behavior) -> (Pair<Int, Int>) -> Unit
+    private val limit: Int = list.length - 1
 
 
     init {
-        val splitList = list.splitAt(workers)
-        initial = splitList.first.zipWithPosition()
-        workList = splitList.second
-        resultList = List.Companion()
+        val splitLists = list.zipWithPosition()
+            .splitAt(workers)
+        initial = splitLists.first
+        workList = splitLists.second
+        this@Manager.resultHeap = Heap { p1, p2 -> p1.second.compareTo(p2.second) }
         managerFunction = { manager ->
             { behavior ->
                 { item ->
-                    val result = behavior.resultList.cons(item)
-                    if (result.length == list.length) {
-                        client.tell(Result.Companion(result))
+                    val result = streamResult(
+                        behavior.resultHeap + item,
+                        behavior.expected,
+                        List()
+                    )
+                    result.third.forEach { client.tell(it) }
+                    if (result.second == limit) {
+                        client.tell(-1)
                     } else {
                         manager.context.become(
                             Behavior(
                                 behavior.workList
                                     .tailSafe()
-                                    .getOrElse(List.Companion()),
-                                result
+                                    .getOrElse(List()),
+                                result.first,
+                                result.second
                             )
                         )
                     }
@@ -44,39 +53,54 @@ class Manager(
     }
 
     fun start() {
-        onReceive(0, self())
+        onReceive(0 to 0, self())
         sequence(initial.map { initWorker(it) })
             .forEach(
                 onSuccess = { initWorkers(it) },
-                onFailure = { tellClientEmptyResult(it.message ?: "Unknown error") }
+                onFailure = { client.tell(-1) }
             )
     }
 
+    private fun streamResult(
+        result: Heap<Pair<Int, Int>>,
+        expected: Int,
+        list: List<Int>
+    ): Triple<Heap<Pair<Int, Int>>, Int, List<Int>> {
+        val triple = Triple(result, expected, list)
+        val temp = result.head.flatMap { head ->
+            result.tail().map { tail ->
+                if (head.second == expected) {
+                    streamResult(tail, expected + 1, list.cons(head.first))
+                } else {
+                    triple
+                }
+            }
+        }
+        return temp.getOrElse(triple)
+    }
+
     private fun initWorker(t: Pair<Int, Int>): Result<() -> Unit> =
-        Result.Companion({
-            Worker("Worker #${t.second}").tell(t.first, self())
+        Result({
+            Worker("Worker #${t.second}").tell(t, self())
         })
 
     private fun initWorkers(lst: List<() -> Unit>) {
         lst.forEach { it() }
     }
 
-    private fun tellClientEmptyResult(string: String) {
-        client.tell(Result.Companion.failure("$string caused by empty input list"))
+    override fun onReceive(message: Pair<Int, Int>, sender: Result<Actor<Pair<Int, Int>>>) {
+        context.become(Behavior(workList, resultHeap, 0))
     }
 
-    override fun onReceive(message: Int, sender: Result<Actor<Int>>) {
-        context.become(Behavior(workList, resultList))
-    }
+    inner class Behavior internal constructor(
+        internal val workList: List<Pair<Int, Int>>,
+        internal val resultHeap: Heap<Pair<Int, Int>>,
+        internal val expected: Int
+    ) : MessageProcessor<Pair<Int, Int>> {
 
-    internal inner class Behavior internal constructor(
-        internal val workList: List<Int>,
-        internal val resultList: List<Int>
-    ) : MessageProcessor<Int> {
-
-        override fun process(message: Int, sender: Result<Actor<Int>>) {
+        override fun process(message: Pair<Int, Int>, sender: Result<Actor<Pair<Int, Int>>>) {
             managerFunction(this@Manager)(this@Behavior)(message)
-            sender.forEach(onSuccess = { a: Actor<Int> ->
+            sender.forEach(onSuccess = { a: Actor<Pair<Int, Int>> ->
                 workList.headSafe().forEach({ a.tell(it, self()) }) { a.shutdown() }
             })
         }

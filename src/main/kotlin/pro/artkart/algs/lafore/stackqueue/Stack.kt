@@ -1,58 +1,27 @@
 package pro.artkart.algs.lafore.stackqueue
 
-class Stack(
-    private val capacity: Int
-) {
+import pro.artkart.kmagic.common.Option
+import pro.artkart.kmagic.common.Option.None
 
-    private val stack = Array(capacity) { 0 }
+class Stack<T> {
 
-    private var head = -1
+    var head: Option<Node<T>> = None
+    var size = 0
 
-    fun push(item: Int) = when {
-        isFull() -> throw RuntimeException("Stack is full")
-        else -> stack[++head] = item
+    fun push(item: T) {
+        head = Option(Node(item, head))
+        ++size
     }
 
-    fun pop(): Int = when {
-        isEmpty() -> throw RuntimeException("Stack is empty")
-        else -> stack[head--]
+    fun pop(): Option<T> = head.map {
+        head = it.next
+        --size
+        it.value
     }
 
-    fun peak(): Int = when {
-        isEmpty() -> throw RuntimeException("Stack is empty")
-        else -> stack[head]
-    }
+    fun peek(): Option<T> = head.map { it.value }
 
-    fun isEmpty(): Boolean = head == -1
+    fun isEmpty(): Boolean = size == 0
 
-    fun isFull(): Boolean = head == capacity - 1
-}
-
-fun String.reverse(): String = Stack(length).let { stack ->
-    forEach { char -> stack.push(char.code) }
-    buildString {
-        while (!stack.isEmpty()) {
-            append(stack.pop().toChar())
-        }
-    }
-}
-
-fun String.checkBrackets(): String {
-    fun checkPair(bracketPair: Pair<Char, Char>): Boolean = when (bracketPair) {
-        '{' to '}', '[' to ']', '(' to ')' -> true
-        else -> false
-    }
-
-    val stack = Stack(length)
-    forEachIndexed { index, char ->
-        when (char) {
-            '{', '[', '(' -> stack.push(char.code)
-            '}', ']', ')' -> {
-                if (!checkPair(Pair(stack.pop().toChar(), char))) {
-                    return "Error: $char at $index"
-                }
-            }
-        }
-    }
-    return "Ok"
+    override fun toString(): String = "Stack(${head.map { "$it" }.getOrElse { EMPTY }})"
 }
