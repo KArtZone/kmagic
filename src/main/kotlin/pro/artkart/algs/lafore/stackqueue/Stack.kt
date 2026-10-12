@@ -5,11 +5,11 @@ import pro.artkart.kmagic.common.Option.None
 
 class Stack<T> {
 
-    var head: Option<Node<T>> = None
+    var head: Option<OneWayNode<T>> = None
     var size = 0
 
     fun push(item: T) {
-        head = Option(Node(item, head))
+        head = Option(OneWayNode(item, head))
         ++size
     }
 

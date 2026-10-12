@@ -6,10 +6,10 @@ import pro.artkart.kmagic.common.Option.None
 class Deque<T> {
 
     var size = 0
-    var left: Option<Node<T>> = None
-    var right: Option<Node<T>> = None
+    var left: Option<TwoWayNode<T>> = None
+    var right: Option<TwoWayNode<T>> = None
 
-    fun insertLeft(item: T) = Node(item)
+    fun insertLeft(item: T) = TwoWayNode(item)
         .let { newNode ->
             when {
                 isEmpty() -> {
@@ -27,7 +27,7 @@ class Deque<T> {
         }
 
 
-    fun insertRight(item: T) = Node(item)
+    fun insertRight(item: T) = TwoWayNode(item)
         .let { newNode ->
             when {
                 isEmpty() -> {
@@ -71,15 +71,4 @@ class Deque<T> {
     override fun toString(): String = "Deque(${
         left.map { "$it" }.getOrElse { EMPTY }
     })"
-
-    class Node<T>(
-        val value: T,
-        var next: Option<Node<T>> = None,
-        var previous: Option<Node<T>> = None
-    ) {
-
-        override fun toString(): String = "$value -> ${
-            next.map { "$it" }.getOrElse { EMPTY }
-        }"
-    }
 }

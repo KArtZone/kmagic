@@ -5,12 +5,12 @@ import pro.artkart.kmagic.common.Option.None
 
 class Queue<T> {
 
-    var head: Option<Node<T>> = None
-    var tail: Option<Node<T>> = None
+    var head: Option<OneWayNode<T>> = None
+    var tail: Option<OneWayNode<T>> = None
     var size = 0
 
     fun insert(item: T) {
-        Node(item).let { newNode ->
+        OneWayNode(item).let { newNode ->
             when {
                 isEmpty() -> {
                     head = Option(newNode)
