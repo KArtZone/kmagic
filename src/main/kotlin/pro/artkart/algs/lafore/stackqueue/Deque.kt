@@ -62,6 +62,10 @@ class Deque<T> {
         rightNode.value
     }
 
+    fun peekLeft(): Option<T> = left.map { it.value }
+
+    fun peekRight(): Option<T> = right.map { it.value }
+
     fun isEmpty(): Boolean = size == 0
 
     override fun toString(): String = "Deque(${
