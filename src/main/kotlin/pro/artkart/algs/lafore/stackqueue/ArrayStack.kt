@@ -4,23 +4,23 @@ class ArrayStack(
     private val capacity: Int
 ) {
 
-    private val stack = Array(capacity) { 0 }
+    private val stack = IntArray(capacity)
 
     private var head = -1
 
-    fun push(item: Int) = when {
-        isFull() -> throw RuntimeException("Stack is full")
-        else -> stack[++head] = item
+    fun push(item: Int) {
+        check(!isFull()) { "Stack is full" }
+        stack[++head] = item
     }
 
-    fun pop(): Int = when {
-        isEmpty() -> throw RuntimeException("Stack is empty")
-        else -> stack[head--]
+    fun pop(): Int {
+        check(!isEmpty()) { "Stack is empty" }
+        return stack[head--]
     }
 
-    fun peak(): Int = when {
-        isEmpty() -> throw RuntimeException("Stack is empty")
-        else -> stack[head]
+    fun peek(): Int {
+        check(!isEmpty()) { "Stack is empty" }
+        return stack[head]
     }
 
     fun isEmpty(): Boolean = head == -1
