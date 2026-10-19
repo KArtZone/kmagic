@@ -42,4 +42,12 @@ class ArrayTest : StringSpec({
             }
         }
     }
+
+    "infix to postfix fun test" {
+        "A*(B+C)-D/(E+F)".toPostfix() shouldBe "ABC+*DEF+/-"
+    }
+
+    "evaluate postfix fun test" {
+        "345+*612+/-".evaluate().forEach { it shouldBe 25 }
+    }
 })

@@ -27,32 +27,3 @@ class ArrayStack(
 
     fun isFull(): Boolean = head == capacity - 1
 }
-
-fun String.reverse(): String = ArrayStack(length).let { stack ->
-    forEach { char -> stack.push(char.code) }
-    buildString {
-        while (!stack.isEmpty()) {
-            append(stack.pop().toChar())
-        }
-    }
-}
-
-fun String.checkBrackets(): String {
-    fun checkPair(bracketPair: Pair<Char, Char>): Boolean = when (bracketPair) {
-        '{' to '}', '[' to ']', '(' to ')' -> true
-        else -> false
-    }
-
-    val stack = ArrayStack(length)
-    forEachIndexed { index, char ->
-        when (char) {
-            '{', '[', '(' -> stack.push(char.code)
-            '}', ']', ')' -> {
-                if (!checkPair(Pair(stack.pop().toChar(), char))) {
-                    return "Error: $char at $index"
-                }
-            }
-        }
-    }
-    return "Ok"
-}

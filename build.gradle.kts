@@ -19,6 +19,8 @@ dependencies {
     implementation(libs.arrow.fx.stm)
     implementation(libs.arrow.resilience)
 
+    implementation("org.jdom:jdom2:2.0.6.1")
+
     implementation(libs.logging)
     implementation(libs.logback)
 

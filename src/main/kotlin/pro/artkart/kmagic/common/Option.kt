@@ -9,6 +9,8 @@ sealed class Option<out A> {
 
     abstract fun <B> map(f: (A) -> B): Option<B>
 
+    abstract fun forEach(f: (A) -> Unit)
+
     fun <B> flatMap(f: (A) -> Option<B>): Option<B> = map(f).getOrElse(None)
 
     fun filter(p: (A) -> Boolean): Option<A> =
@@ -29,6 +31,7 @@ sealed class Option<out A> {
     internal object None : Option<Nothing>() {
 
         override fun <B> map(f: (Nothing) -> B): Option<B> = None
+        override fun forEach(f: (Nothing) -> Unit) {}
 
         override fun isEmpty() = true
 
@@ -42,6 +45,7 @@ sealed class Option<out A> {
     internal data class Some<out A>(internal val value: A) : Option<A>() {
 
         override fun <B> map(f: (A) -> B): Option<B> = Some(f(value))
+        override fun forEach(f: (A) -> Unit) = f(value)
 
         override fun isEmpty() = false
     }
