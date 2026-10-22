@@ -78,7 +78,7 @@ sealed class Result<out A>: Serializable {
         override fun toString(): String = "Empty"
     }
 
-    internal class Failure<out A>(internal val exception: RuntimeException): Result<A>() {
+    internal data class Failure<out A>(internal val exception: RuntimeException): Result<A>() {
 
         override fun mapEmpty(): Result<Any> = failure(this.exception)
 
@@ -102,7 +102,7 @@ sealed class Result<out A>: Serializable {
         override fun toString(): String = "Failure(${exception.message})"
     }
 
-    internal class Success<out A>(internal val value: A): Result<A>() {
+    internal data class Success<out A>(internal val value: A): Result<A>() {
 
         override fun mapEmpty(): Result<Nothing> = failure("Not empty")
 

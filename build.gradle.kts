@@ -26,6 +26,7 @@ dependencies {
 
     testImplementation(libs.kotest.core)
     testImplementation(libs.kotest.assertions)
+    testImplementation(libs.kotest.property)
     testImplementation(libs.coroutines.test)
 }
 
