@@ -3,6 +3,10 @@ package pro.artkart.algs.lafore.stackqueue
 import io.kotest.assertions.throwables.shouldThrowWithMessage
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import pro.artkart.algs.lafore.array.stackqueue.ArrayQueue
+import pro.artkart.algs.lafore.array.stackqueue.ArrayStack
+import pro.artkart.algs.lafore.array.stackqueue.evaluate
+import pro.artkart.algs.lafore.array.stackqueue.toPostfix
 
 class ArrayTest : StringSpec({
 

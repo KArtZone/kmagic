@@ -1,4 +1,4 @@
-package pro.artkart.algs.lafore.stackqueue
+package pro.artkart.algs.lafore.array.stackqueue
 
 class ArrayStack(
     private val capacity: Int
