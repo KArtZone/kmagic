@@ -4,6 +4,7 @@ coroutines = "1.11.0"
 logging = "8.0.4"
 logback = "1.6.3"
 arrow = "2.2.3"
+jdom = "2.0.6.1"
 
 [libraries]
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -13,8 +14,9 @@ arrow-resilience = { module = "io.arrow-kt:arrow-resilience-jvm", version.ref = 
 arrow-fx-stm = { module = "io.arrow-kt:arrow-fx-stm-jvm", version.ref = "arrow" }
 logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "logging" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+jdom = { module = "org.jdom:jdom2", version.ref = "jdom" }
 
 kotest-core = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-assertions = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
-kotest-property = { module = "io.kotest:kotest-property", version.ref="kotest" }
+kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }

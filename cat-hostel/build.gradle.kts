@@ -27,6 +27,9 @@ dependencies {
 
     implementation(libs.coroutines.core)
 
+    implementation(platform(libs.koin.bom))
+    implementation  (libs.koin.ktor)
+
     implementation(libs.arrow.core)
     implementation(libs.arrow.fx.coroutines)
     implementation(libs.arrow.fx.stm)
